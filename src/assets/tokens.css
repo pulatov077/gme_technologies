@@ -1,0 +1,45 @@
+/* ─── GME Technologies – Design Tokens ─────────────────────────────────── */
+:root {
+  /* Colour palette */
+  --color-ink:          #0B0F14;
+  --color-paper:        #F4F2EE;
+  --color-accent:       #FF5A1F;
+  --color-accent-dark:  #D94A15;
+  --color-border:       #1E252E;
+  --color-border-light: #DDD9D2;
+  --color-muted:        #6B7280;
+  --color-surface-dark: #111820;
+
+  /* Typography */
+  --font-sans: 'Manrope', system-ui, sans-serif;
+
+  /* Type scale – fluid */
+  --text-display: clamp(3.5rem, 8vw, 7.5rem);
+  --text-h1:      clamp(2.25rem, 5vw, 4.5rem);
+  --text-h2:      clamp(1.75rem, 3.5vw, 3rem);
+  --text-h3:      clamp(1.25rem, 2vw, 1.75rem);
+  --text-body:    1rem;
+  --text-sm:      0.875rem;
+  --text-label:   0.6875rem;
+
+  /* Leading */
+  --leading-body:  1.6;
+  --leading-tight: 1.05;
+
+  /* Spacing */
+  --space-section: clamp(4rem, 10vw, 9rem);
+
+  /* Grid */
+  --grid-cols:   12;
+  --grid-gap:    clamp(1rem, 2.5vw, 2rem);
+  --container-px: clamp(1rem, 5vw, 5rem);
+
+  /* Transitions */
+  --ease-out:  cubic-bezier(0.4, 0, 0.2, 1);
+  --duration:  0.25s;
+
+  /* Z-index layers */
+  --z-header:  100;
+  --z-modal:   200;
+  --z-toast:   300;
+}
