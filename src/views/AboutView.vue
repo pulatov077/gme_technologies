@@ -9,25 +9,82 @@ import LogoMarquee from '@/components/LogoMarquee.vue'
 
 const { t } = useI18n()
 
-/* Event Gallery */
+/* Event Gallery Slider */
 const eventPhotos = [
   { id: 1, src: '/images/gme-presentation-2025.jpg', alt: 'GME Technologies — AI Hackathon Presentation', placeholder: false },
-  { id: 2, src: '', alt: 'Hackathon jamoamiz', placeholder: true },
-  { id: 3, src: '', alt: 'Taqdimot jarayoni', placeholder: true },
-  { id: 4, src: '', alt: 'Jamoa bilan', placeholder: true },
+  { id: 2, src: '', alt: 'AI Hackathon Jamoasi', placeholder: true },
+  { id: 3, src: '', alt: 'Loyiha Taqdimoti Jarayoni', placeholder: true },
+  { id: 4, src: '', alt: 'Hamkorlar va GME Jamoasi', placeholder: true },
 ]
 
 const activePhotoIndex = ref(0)
 let galleryTimer: ReturnType<typeof setInterval> | null = null
+let resumeTimeout: ReturnType<typeof setTimeout> | null = null
+let touchStartX = 0
+
+const nextPhoto = () => {
+  activePhotoIndex.value = (activePhotoIndex.value + 1) % eventPhotos.length
+}
+
+const prevPhoto = () => {
+  activePhotoIndex.value =
+    (activePhotoIndex.value - 1 + eventPhotos.length) % eventPhotos.length
+}
+
+const startAutoScroll = () => {
+  if (galleryTimer) clearInterval(galleryTimer)
+  galleryTimer = setInterval(nextPhoto, 3000)
+}
+
+const stopAutoScroll = () => {
+  if (galleryTimer) {
+    clearInterval(galleryTimer)
+    galleryTimer = null
+  }
+}
+
+const resetTimerAfterInteraction = () => {
+  stopAutoScroll()
+  if (resumeTimeout) clearTimeout(resumeTimeout)
+  resumeTimeout = setTimeout(() => {
+    startAutoScroll()
+  }, 3000)
+}
+
+const handleWheel = (e: WheelEvent) => {
+  e.preventDefault()
+  if (e.deltaY > 0 || e.deltaX > 0) {
+    nextPhoto()
+  } else if (e.deltaY < 0 || e.deltaX < 0) {
+    prevPhoto()
+  }
+  resetTimerAfterInteraction()
+}
+
+const handleTouchStart = (e: TouchEvent) => {
+  if (e.touches[0]) {
+    touchStartX = e.touches[0].clientX
+  }
+}
+
+const handleTouchEnd = (e: TouchEvent) => {
+  if (e.changedTouches[0]) {
+    const diff = e.changedTouches[0].clientX - touchStartX
+    if (Math.abs(diff) > 30) {
+      if (diff < 0) nextPhoto()
+      else prevPhoto()
+      resetTimerAfterInteraction()
+    }
+  }
+}
 
 onMounted(() => {
-  galleryTimer = setInterval(() => {
-    activePhotoIndex.value = (activePhotoIndex.value + 1) % eventPhotos.length
-  }, 3500)
+  startAutoScroll()
 })
 
 onUnmounted(() => {
-  if (galleryTimer) clearInterval(galleryTimer)
+  stopAutoScroll()
+  if (resumeTimeout) clearTimeout(resumeTimeout)
 })
 
 const values = [
@@ -79,83 +136,101 @@ const values = [
         </div>
       </div>
 
-      <!-- Event Gallery -->
+      <!-- Event Section -->
       <div class="presentation-section">
-        <span class="label text-accent">03 / TADBIRLAR</span>
-        <h2 class="h2 story-title">AI Hackathon — Yanvar 2026</h2>
+        <div class="presentation-layout">
+          <!-- Text Info Left Side -->
+          <div class="presentation-info-side">
+            <span class="label text-accent">03 / TADBIRLAR</span>
+            <h2 class="h2 story-title">AI Hackathon — Yanvar 2026</h2>
+            <div class="presentation-texts">
+              <p class="presentation-desc">
+                2026-yil yanvar oyida GME Technologies jamoasi Samarqand shahridagi Movenpick
+                mehmonxonasida bo'lib o'tgan AI Hackathon tadbirida qatnashib, o'z loyihamizni
+                taqdimot qildi. Tadbirda IT Park, School 21, Ucell va Uztelecom hamkorlik qilishdi.
+              </p>
+              <p class="presentation-desc">
+                Bu tadbir kompaniyamiz uchun muhim qadam bo'ldi — biz sun'iy intellekt
+                texnologiyalarini biznes yechimlarga tatbiq etish bo'yicha innovatsion
+                g'oyalarimizni namoyish etdik.
+              </p>
+            </div>
+            <div class="presentation-tags">
+              <span class="presentation-tag">🤖 AI Hackathon</span>
+              <span class="presentation-tag">📍 Movenpick, Samarqand</span>
+              <span class="presentation-tag">📅 Yanvar 2026</span>
+            </div>
+          </div>
 
-        <div class="event-gallery">
-          <!-- Main Image Viewer -->
-          <div class="gallery-main">
+          <!-- Compact Interactive Slider Right Side -->
+          <div class="presentation-slider-side">
             <div
-              v-for="(photo, idx) in eventPhotos"
-              :key="photo.id"
-              class="gallery-slide"
-              :class="{ 'gallery-slide--active': idx === activePhotoIndex }"
+              class="event-slider"
+              @wheel.prevent="handleWheel"
+              @touchstart="handleTouchStart"
+              @touchend="handleTouchEnd"
+              @mouseenter="stopAutoScroll"
+              @mouseleave="resetTimerAfterInteraction"
             >
-              <img
-                v-if="!photo.placeholder"
-                :src="photo.src"
-                :alt="photo.alt"
-                class="gallery-slide-img"
-              />
-              <div v-else class="gallery-slide-placeholder">
-                <span class="placeholder-icon">📷</span>
-                <span class="placeholder-label">{{ photo.alt }}</span>
+              <div
+                class="slider-track"
+                :style="{ transform: `translateX(-${activePhotoIndex * 100}%)` }"
+              >
+                <div
+                  v-for="photo in eventPhotos"
+                  :key="photo.id"
+                  class="slider-slide"
+                >
+                  <img
+                    v-if="!photo.placeholder"
+                    :src="photo.src"
+                    :alt="photo.alt"
+                    class="slider-img"
+                  />
+                  <div v-else class="slider-placeholder">
+                    <span class="placeholder-icon">📷</span>
+                    <span class="placeholder-label">{{ photo.alt }}</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <!-- Overlay gradient -->
-            <div class="gallery-overlay"></div>
+              <!-- Gradient overlay -->
+              <div class="slider-overlay"></div>
 
-            <!-- Caption -->
-            <div class="gallery-caption">
-              <div class="presentation-tags">
-                <span class="presentation-tag">🤖 AI Hackathon</span>
-                <span class="presentation-tag">📍 Movenpick, Samarqand</span>
-                <span class="presentation-tag">📅 Yanvar 2026</span>
+              <!-- Navigation arrows -->
+              <button
+                class="slider-nav slider-nav--prev"
+                aria-label="Oldingi rasm"
+                @click.stop="prevPhoto(); resetTimerAfterInteraction()"
+              >
+                ‹
+              </button>
+              <button
+                class="slider-nav slider-nav--next"
+                aria-label="Keyingi rasm"
+                @click.stop="nextPhoto(); resetTimerAfterInteraction()"
+              >
+                ›
+              </button>
+
+              <!-- Indicators & counter -->
+              <div class="slider-footer">
+                <div class="slider-dots">
+                  <button
+                    v-for="(_, idx) in eventPhotos"
+                    :key="'dot-' + idx"
+                    class="slider-dot"
+                    :class="{ 'slider-dot--active': idx === activePhotoIndex }"
+                    :aria-label="`Rasm ${idx + 1}`"
+                    @click.stop="activePhotoIndex = idx; resetTimerAfterInteraction()"
+                  />
+                </div>
+                <div class="slider-counter">
+                  {{ activePhotoIndex + 1 }} / {{ eventPhotos.length }}
+                </div>
               </div>
-            </div>
-
-            <!-- Slide counter -->
-            <div class="gallery-counter">
-              {{ activePhotoIndex + 1 }} / {{ eventPhotos.length }}
             </div>
           </div>
-
-          <!-- Thumbnail Strip -->
-          <div class="gallery-thumbs">
-            <button
-              v-for="(photo, idx) in eventPhotos"
-              :key="'thumb-' + photo.id"
-              class="gallery-thumb"
-              :class="{ 'gallery-thumb--active': idx === activePhotoIndex }"
-              @click="activePhotoIndex = idx"
-            >
-              <img
-                v-if="!photo.placeholder"
-                :src="photo.src"
-                :alt="photo.alt"
-                class="gallery-thumb-img"
-              />
-              <div v-else class="gallery-thumb-placeholder">
-                <span>📷</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <div class="presentation-info">
-          <p class="presentation-desc">
-            2026-yil yanvar oyida GME Technologies jamoasi Samarqand shahridagi Movenpick
-            mehmonxonasida bo'lib o'tgan AI Hackathon tadbirida qatnashib, o'z loyihamizni
-            taqdimot qildi. Tadbirda IT Park, School 21, Ucell va Uztelecom hamkorlik qilishdi.
-          </p>
-          <p class="presentation-desc">
-            Bu tadbir kompaniyamiz uchun muhim qadam bo'ldi — biz sun'iy intellekt
-            texnologiyalarini biznes yechimlarga tatbiq etish bo'yicha innovatsion
-            g'oyalarimizni namoyish etdik.
-          </p>
         </div>
       </div>
 
@@ -302,109 +377,49 @@ const values = [
   color: var(--color-muted);
 }
 
-/* Event Gallery */
+/* Event Section & Compact Slider */
 .presentation-section {
   padding-block: 4rem;
   border-bottom: 1px solid var(--color-border-light);
 }
 
-.event-gallery {
-  margin-top: 1.5rem;
+.presentation-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  align-items: center;
 }
 
-.gallery-main {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #111820;
-  cursor: pointer;
+@media (min-width: 992px) {
+  .presentation-layout {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 3.5rem;
+  }
 }
 
-.gallery-slide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.8s ease;
-}
-
-.gallery-slide--active {
-  opacity: 1;
-}
-
-.gallery-slide-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.gallery-main:hover .gallery-slide--active .gallery-slide-img {
-  transform: scale(1.05);
-}
-
-/* Placeholder for empty photo slots */
-.gallery-slide-placeholder {
-  width: 100%;
-  height: 100%;
-  background: #111820;
+.presentation-info-side {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 1.25rem;
+}
+
+.presentation-texts {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
-.placeholder-icon {
-  font-size: 3rem;
-  opacity: 0.3;
-}
-
-.placeholder-label {
-  font-size: 0.9375rem;
-  color: rgba(244, 242, 238, 0.35);
-  font-weight: 500;
-}
-
-/* Overlay gradient */
-.gallery-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(11, 15, 20, 0.65) 0%,
-    rgba(11, 15, 20, 0.1) 35%,
-    transparent 100%
-  );
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-  z-index: 1;
-}
-
-.gallery-main:hover .gallery-overlay {
-  background: linear-gradient(
-    to top,
-    rgba(11, 15, 20, 0.75) 0%,
-    rgba(11, 15, 20, 0.15) 35%,
-    transparent 100%
-  );
-}
-
-/* Caption & tags */
-.gallery-caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1.25rem 1.5rem;
-  z-index: 2;
+.presentation-desc {
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-muted);
 }
 
 .presentation-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .presentation-tag {
@@ -412,103 +427,193 @@ const values = [
   align-items: center;
   gap: 0.375rem;
   padding: 0.4rem 0.875rem;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 90, 31, 0.08);
+  border: 1px solid rgba(255, 90, 31, 0.2);
   border-radius: 100px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  color: #fff;
-  transition: all 0.3s ease;
+  color: var(--color-ink);
 }
 
-.gallery-main:hover .presentation-tag {
-  background: rgba(255, 90, 31, 0.25);
-  border-color: rgba(255, 90, 31, 0.4);
-}
-
-/* Slide counter */
-.gallery-counter {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  padding: 0.375rem 0.75rem;
-  background: rgba(11, 15, 20, 0.6);
-  backdrop-filter: blur(6px);
-  border-radius: 100px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-  z-index: 2;
-  font-family: monospace;
-}
-
-/* Thumbnail strip */
-.gallery-thumbs {
+/* Compact Slider Side */
+.presentation-slider-side {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  justify-content: center;
 }
 
-.gallery-thumb {
-  flex: 1;
-  aspect-ratio: 16 / 9;
-  border-radius: 6px;
+.event-slider {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  height: 290px;
+  border-radius: 8px;
   overflow: hidden;
-  border: 2px solid transparent;
-  cursor: pointer;
   background: #111820;
-  padding: 0;
-  transition: all 0.3s ease;
+  box-shadow: 0 12px 36px rgba(11, 15, 20, 0.12);
+  border: 1px solid var(--color-border-light);
+  cursor: grab;
+  user-select: none;
 }
 
-.gallery-thumb--active {
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(255, 90, 31, 0.25);
+.event-slider:active {
+  cursor: grabbing;
 }
 
-.gallery-thumb:hover:not(.gallery-thumb--active) {
-  border-color: rgba(255, 90, 31, 0.4);
+.slider-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform;
 }
 
-.gallery-thumb-img {
+.slider-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.slider-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.gallery-thumb-placeholder {
+.event-slider:hover .slider-img {
+  transform: scale(1.06);
+}
+
+.slider-placeholder {
   width: 100%;
   height: 100%;
+  background: #111820;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: rgba(244, 242, 238, 0.4);
+}
+
+.placeholder-icon {
+  font-size: 2.25rem;
+  opacity: 0.4;
+}
+
+.placeholder-label {
+  font-size: 0.875rem;
+  color: rgba(244, 242, 238, 0.45);
+  font-weight: 500;
+}
+
+.slider-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(11, 15, 20, 0.5) 0%,
+    transparent 40%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Nav arrows */
+.slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(11, 15, 20, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
-  opacity: 0.3;
+  cursor: pointer;
+  z-index: 3;
+  font-size: 1.25rem;
+  line-height: 1;
+  opacity: 0;
+  transition: all 0.25s ease;
 }
 
-/* Info section below gallery */
-.presentation-info {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  max-width: 72ch;
+.event-slider:hover .slider-nav {
+  opacity: 1;
 }
 
-@media (min-width: 768px) {
-  .presentation-info {
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+.slider-nav:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.slider-nav--prev {
+  left: 12px;
+}
+
+.slider-nav--next {
+  right: 12px;
+}
+
+/* Footer indicators & counter */
+.slider-footer {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.slider-dots {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.slider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-dot--active {
+  width: 22px;
+  border-radius: 100px;
+  background: var(--color-accent);
+}
+
+.slider-counter {
+  background: rgba(11, 15, 20, 0.65);
+  backdrop-filter: blur(4px);
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: monospace;
+}
+
+@media (max-width: 640px) {
+  .event-slider {
+    height: 220px;
   }
-}
-
-.presentation-desc {
-  font-size: 1.0625rem;
-  line-height: 1.7;
-  color: var(--color-muted);
 }
 
 .values-section {
