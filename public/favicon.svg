@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
   <rect width="48" height="48" rx="10" fill="#0B0F14" />
-  <!-- GME Geometric G Emblem -->
+  <!-- GME Precision Geometric G Emblem -->
   <g transform="translate(6, 6)">
     <!-- Top-Right Accent Slice -->
     <path
-      d="M23 4H33L26.5 12H16.5L23 4Z"
+      d="M20 4H30L32 6L26 12H16L20 4Z"
       fill="#FF5A1F"
     />
     <!-- Main Angular G Body -->
     <path
       fill-rule="evenodd"
       clip-rule="evenodd"
-      d="M19 4L13.5 10.5H7V24L14.5 32H29L35 25.5V16H21V22.5H28V24L25.5 26.5H16L12 22.5V15H17.5L23.5 8H30.5L34 4H19Z"
+      d="M10 4L4 10V26L10 32H26L32 26V16H18V21H26V24.5L24.5 26H11.5L9 23.5V12.5L11.5 10H14.5L17.5 7H10L10 4Z"
       fill="#FF5A1F"
     />
   </g>

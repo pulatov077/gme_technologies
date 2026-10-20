@@ -22,17 +22,17 @@ const { t } = useI18n()
             <!-- Phone -->
             <div class="contact-card">
               <span class="label text-accent">{{ t('contact.phone') }}</span>
-              <a href="tel:+998000000000" class="contact-link">+998 00 000 00 00</a>
-              <span class="contact-hint">Dush–Jum: 09:00–18:00</span>
+              <a href="tel:+998913131154" class="contact-link">+998 91 313 11 54</a>
+              <span class="contact-hint">{{ t('contact.phoneHint') }}</span>
             </div>
 
             <!-- Telegram -->
             <div class="contact-card">
               <span class="label text-accent">{{ t('contact.telegram') }}</span>
-              <a href="https://t.me/gmetechnologies" target="_blank" rel="noopener noreferrer" class="contact-link">
-                @gmetechnologies
+              <a href="https://t.me/gme_technologies" target="_blank" rel="noopener noreferrer" class="contact-link">
+                @gme_technologies
               </a>
-              <span class="contact-hint">Tezkor muloqot va savollar</span>
+              <span class="contact-hint">{{ t('contact.telegramHint') }}</span>
             </div>
 
             <!-- Email -->
@@ -41,38 +41,47 @@ const { t } = useI18n()
               <a href="mailto:info@gmetech.uz" class="contact-link">
                 info@gmetech.uz
               </a>
-              <span class="contact-hint">Rasmiy takliflar va hisob-kitob</span>
+              <span class="contact-hint">{{ t('contact.emailHint') }}</span>
             </div>
 
             <!-- Address -->
             <div class="contact-card">
               <span class="label text-accent">{{ t('contact.address') }}</span>
               <p class="contact-address-text">
-                Samarqand shahri, Universitet xiyoboni ko‘chasi, 15-uy
+                {{ t('contact.addressVal') }}
               </p>
-              <span class="contact-hint">Mo‘ljal: Samarqand Davlat Universiteti</span>
+              <span class="contact-hint">{{ t('contact.addressHint') }}</span>
             </div>
           </div>
 
-          <!-- Embedded Map Placeholder -->
-          <div class="map-placeholder-box">
-            <div class="map-placeholder-inner">
-              <div class="map-crosshair"></div>
-              <div class="map-content">
-                <span class="label text-accent">OFIS XARITASI</span>
-                <h4 class="h3 text-white">Samarqand ofisi</h4>
-                <p class="text-map-sub">
-                  Google Maps / Yandex Maps integratsiyasi — TODO (API kalit kiritilgach faollashadi)
-                </p>
-                <a
-                  href="https://maps.google.com/?q=Samarkand"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="btn btn--outline btn--sm btn-map"
-                >
-                  {{ t('contact.map') }} ↗
-                </a>
+          <!-- Real Embedded Google Map -->
+          <div class="map-box">
+            <div class="map-wrapper">
+              <iframe
+                src="https://maps.google.com/maps?q=39.6743375,66.9735469&hl=uz&z=16&output=embed"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                allowfullscreen="false"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="GME Technologies ofis manzili"
+                class="map-iframe"
+              ></iframe>
+            </div>
+            <div class="map-footer">
+              <div class="map-footer-info">
+                <span class="map-marker-dot"></span>
+                <span>{{ t('about.addressVal') }}</span>
               </div>
+              <a
+                href="https://maps.google.com/?q=39.6743375,66.9735469"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn--outline btn--sm"
+              >
+                {{ t('contact.map') }} ↗
+              </a>
             </div>
           </div>
         </div>
@@ -151,49 +160,55 @@ const { t } = useI18n()
   color: var(--color-muted);
 }
 
-.map-placeholder-box {
-  margin-top: 2rem;
-  border-radius: 2px;
+.map-box {
+  margin-top: 1.5rem;
+  border-radius: 4px;
   overflow: hidden;
-  background-color: #0b0f14;
-  border: 1px solid var(--color-border);
+  background: #ffffff;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 20px rgba(11, 15, 20, 0.04);
 }
 
-.map-placeholder-inner {
+.map-wrapper {
   position: relative;
-  aspect-ratio: 16 / 9;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 32px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  height: 260px;
+  background: #111820;
 }
 
-.map-content {
+.map-iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: contrast(102%) brightness(98%);
+}
+
+.map-footer {
+  padding: 0.875rem 1.25rem;
+  background: #ffffff;
+  border-top: 1px solid var(--color-border-light);
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 0.75rem;
-  max-width: 36ch;
 }
 
-.text-map-sub {
+.map-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.8125rem;
-  color: rgba(244, 242, 238, 0.5);
-  line-height: 1.4;
+  font-weight: 600;
+  color: var(--color-ink);
 }
 
-.btn-map {
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.btn-map:hover {
-  border-color: #ffffff;
+.map-marker-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .contact-form-wrapper {
@@ -216,9 +231,5 @@ const { t } = useI18n()
 
 .text-accent {
   color: var(--color-accent);
-}
-
-.text-white {
-  color: #ffffff;
 }
 </style>

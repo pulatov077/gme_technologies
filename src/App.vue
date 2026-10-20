@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
+import AiChatWidget from '@/components/AiChatWidget.vue'
 </script>
 
 <template>
@@ -17,6 +18,8 @@ import AppFooter from '@/components/AppFooter.vue'
     </main>
 
     <AppFooter />
+
+    <AiChatWidget />
   </div>
 </template>
 

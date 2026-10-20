@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { team } from '@/data/team'
 import { partners } from '@/data/partners'
@@ -7,14 +7,20 @@ import { residents } from '@/data/residents'
 import SectionHeading from '@/components/SectionHeading.vue'
 import LogoMarquee from '@/components/LogoMarquee.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+const getInitials = (name: string): string => {
+  const parts = name.trim().split(/\s+/)
+  const first = parts[0]?.charAt(0) || ''
+  const second = parts[1]?.charAt(0) || ''
+  return (first + second).toUpperCase() || 'G'
+}
 
 /* Event Gallery Slider */
 const eventPhotos = [
   { id: 1, src: '/images/gme-presentation-2025.jpg', alt: 'GME Technologies — AI Hackathon Presentation', placeholder: false },
-  { id: 2, src: '', alt: 'AI Hackathon Jamoasi', placeholder: true },
-  { id: 3, src: '', alt: 'Loyiha Taqdimoti Jarayoni', placeholder: true },
-  { id: 4, src: '', alt: 'Hamkorlar va GME Jamoasi', placeholder: true },
+  { id: 2, src: '/images/events/ai-hackathon-stage.jpg', alt: 'National AI Hackathon: Samarkand — Katta sahna va jamoa', placeholder: false },
+  { id: 4, src: '/images/events/ai-hackathon-group.jpg', alt: 'National AI Hackathon: Samarkand — Ishtirokchilar va jamoa', placeholder: false },
 ]
 
 const activePhotoIndex = ref(0)
@@ -87,52 +93,131 @@ onUnmounted(() => {
   if (resumeTimeout) clearTimeout(resumeTimeout)
 })
 
-const values = [
-  {
-    num: '01',
-    title: 'Haqiqiy natijadorlik',
-    desc: 'Biz faqat chiroyli kod emas, biznes uchun aniq daromad va samaradorlik keltiradigan raqamli tizimlar quramiz.',
-  },
-  {
-    num: '02',
-    title: 'To‘liq shaffoflik',
-    desc: 'Loyiha jarayonida yashirin to‘lovlar yo‘q. Hamma bosqichlar Git omborida va vazifalar taxtasida ko‘rinib turadi.',
-  },
-  {
-    num: '03',
-    title: 'Kod va ma’lumotlar mulki',
-    desc: 'Loyiha yakunida butun manba kodi, ma’lumotlar bazasi va barcha server hisoblari buyurtmachi ixtiyoriga to‘liq topshiriladi.',
-  },
-  {
-    num: '04',
-    title: 'Doimiy hamkorlik',
-    desc: 'Sayt yoki ilova ishga tushirilgandan keyin mijozni yolg‘iz qoldirmaymiz. Texnik qo‘llab-quvvatlash va rivojlantirishda yordam beramiz.',
-  },
-]
+const currentLocale = computed<'uz' | 'ru' | 'en'>(() => {
+  return (locale.value === 'ru' || locale.value === 'en') ? locale.value : 'uz'
+})
+
+const valuesData = {
+  uz: [
+    {
+      num: '01',
+      title: 'Haqiqiy natijadorlik',
+      desc: 'Biz faqat chiroyli kod emas, biznes uchun aniq daromad va samaradorlik keltiradigan raqamli tizimlar quramiz.',
+    },
+    {
+      num: '02',
+      title: 'To‘liq shaffoflik',
+      desc: 'Loyiha jarayonida yashirin to‘lovlar yo‘q. Hamma bosqichlar Git omborida va vazifalar taxtasida ko‘rinib turadi.',
+    },
+    {
+      num: '03',
+      title: 'Kod va ma’lumotlar mulki',
+      desc: 'Loyiha yakunida butun manba kodi, ma’lumotlar bazasi va barcha server hisoblari buyurtmachi ixtiyoriga to‘liq topshiriladi.',
+    },
+    {
+      num: '04',
+      title: 'Doimiy hamkorlik',
+      desc: 'Sayt yoki ilova ishga tushirilgandan keyin mijozni yolg‘iz qoldirmaymiz. Texnik qo‘llab-quvvatlash va rivojlantirishda yordam beramiz.',
+    },
+  ],
+  ru: [
+    {
+      num: '01',
+      title: 'Измеримый результат',
+      desc: 'Мы создаем не просто красивый код, а надежные цифровые системы, приносящие прибыль и эффективность бизнесу.',
+    },
+    {
+      num: '02',
+      title: 'Полная прозрачность',
+      desc: 'Никаких скрытых платежей. Все этапы видны в Git-репозитории и трекере задач.',
+    },
+    {
+      num: '03',
+      title: 'Собственность на код и данные',
+      desc: 'По завершении проекта весь исходный код, базы данных и доступы к серверам передаются заказчику.',
+    },
+    {
+      num: '04',
+      title: 'Долгосрочная поддержка',
+      desc: 'После запуска мы не оставляем клиента одного, обеспечивая техническое сопровождение и развитие.',
+    },
+  ],
+  en: [
+    {
+      num: '01',
+      title: 'Measurable Results',
+      desc: 'We build digital systems that generate real business revenue and operational efficiency, not just pretty code.',
+    },
+    {
+      num: '02',
+      title: 'Complete Transparency',
+      desc: 'Zero hidden fees. Every sprint and commit is visible in Git repositories and task boards.',
+    },
+    {
+      num: '03',
+      title: 'Code & Data Ownership',
+      desc: 'Full source code, databases, and cloud infrastructure credentials belong 100% to the client.',
+    },
+    {
+      num: '04',
+      title: 'Long-Term Partnership',
+      desc: 'We do not walk away after launch; our team remains available for post-launch maintenance and feature growth.',
+    },
+  ],
+}
+
+const values = computed(() => {
+  return valuesData[currentLocale.value] || valuesData.uz
+})
 </script>
 
 <template>
   <div class="about-page section-py">
     <div class="container">
-      <!-- Section Heading -->
-      <SectionHeading
-        label="KOMPANIYA"
-        :title="t('about.title')"
-        subtitle="Samarqandda joylashgan, O‘zbekiston miqyosida raqamli loyihalarni amalga oshiruvchi muhandislik jamoasi."
-      />
+      <!-- About Intro & Story -->
+      <div class="about-intro">
+        <SectionHeading
+          :label="t('aboutPage.label')"
+          :title="t('about.title')"
+          :subtitle="t('about.subtitle')"
+        />
 
-      <!-- Story & Mission Grid -->
-      <div class="story-grid">
-        <div class="story-block">
-          <span class="label text-accent">01 / TARIX</span>
-          <h2 class="h2 story-title">{{ t('about.storyTitle') }}</h2>
-          <p class="story-text">{{ t('about.storyText') }}</p>
+        <div class="about-story-content">
+          <p class="about-story-text">{{ t('about.storyText1') }}</p>
+          <p class="about-story-text">{{ t('about.storyText2') }}</p>
+        </div>
+      </div>
+
+      <!-- Team -->
+      <div class="team-section">
+        <div class="team-header">
+          <div>
+            <span class="label text-accent">{{ t('aboutPage.teamLabel') }}</span>
+            <h2 class="h2">{{ t('about.team') }}</h2>
+          </div>
+          <p class="team-sub">
+            {{ t('about.teamSub') }}
+          </p>
         </div>
 
-        <div class="story-block">
-          <span class="label text-accent">02 / MISSIYA</span>
-          <h2 class="h2 story-title">{{ t('about.missionTitle') }}</h2>
-          <p class="story-text">{{ t('about.missionText') }}</p>
+        <div class="team-grid">
+          <div v-for="member in team" :key="member.id" class="team-card">
+            <div class="team-photo-placeholder">
+              <img
+                v-if="member.photoUrl"
+                :src="member.photoUrl"
+                :alt="member.name"
+                class="team-photo"
+              />
+              <div v-else class="team-avatar-box">
+                <span class="team-initials">{{ getInitials(member.name) }}</span>
+              </div>
+            </div>
+            <div class="team-info">
+              <h3 class="team-name">{{ member.name }}</h3>
+              <p class="team-role">{{ member.role }}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -141,18 +226,14 @@ const values = [
         <div class="presentation-layout">
           <!-- Text Info Left Side -->
           <div class="presentation-info-side">
-            <span class="label text-accent">03 / TADBIRLAR</span>
-            <h2 class="h2 story-title">AI Hackathon — Yanvar 2026</h2>
+            <span class="label text-accent">{{ t('about.eventsLabel') }}</span>
+            <h2 class="h2 story-title">{{ t('about.eventTitle') }}</h2>
             <div class="presentation-texts">
               <p class="presentation-desc">
-                2026-yil yanvar oyida GME Technologies jamoasi Samarqand shahridagi Movenpick
-                mehmonxonasida bo'lib o'tgan AI Hackathon tadbirida qatnashib, o'z loyihamizni
-                taqdimot qildi. Tadbirda IT Park, School 21, Ucell va Uztelecom hamkorlik qilishdi.
+                {{ t('about.eventDesc1') }}
               </p>
               <p class="presentation-desc">
-                Bu tadbir kompaniyamiz uchun muhim qadam bo'ldi — biz sun'iy intellekt
-                texnologiyalarini biznes yechimlarga tatbiq etish bo'yicha innovatsion
-                g'oyalarimizni namoyish etdik.
+                {{ t('about.eventDesc2') }}
               </p>
             </div>
             <div class="presentation-tags">
@@ -236,7 +317,7 @@ const values = [
 
       <!-- Values -->
       <div class="values-section">
-        <span class="label text-accent">TAMOYILLAR</span>
+        <span class="label text-accent">{{ t('aboutPage.valuesLabel') }}</span>
         <h2 class="h2 values-heading">{{ t('about.valuesTitle') }}</h2>
 
         <div class="values-grid">
@@ -248,66 +329,40 @@ const values = [
         </div>
       </div>
 
-      <!-- Team -->
-      <div class="team-section">
-        <div class="team-header">
-          <div>
-            <span class="label text-accent">JAMOA</span>
-            <h2 class="h2">{{ t('about.team') }}</h2>
-          </div>
-          <p class="team-sub">
-            Loyiha muvaffaqiyatining negizi — tajribali mutaxassislarimiz.
-          </p>
-        </div>
-
-        <!-- Dev Note -->
-        <div class="dev-note">
-          <span class="dev-badge">TODO</span>
-          <span>Haqiqiy jamoa a’zolarining rasmlari va ma’lumotlari <code>src/data/team.ts</code> fayliga kiritilishi lozim.</span>
-        </div>
-
-        <div class="team-grid">
-          <div v-for="member in team" :key="member.id" class="team-card">
-            <div class="team-photo-placeholder">
-              <div class="team-avatar-box">
-                <span class="team-initials">{{ member.name.charAt(0) }}</span>
-              </div>
-              <span v-if="member.placeholder" class="placeholder-badge">Placeholder</span>
-            </div>
-            <div class="team-info">
-              <h3 class="team-name">{{ member.name }}</h3>
-              <p class="team-role">{{ member.role }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Office in Samarkand -->
       <div class="office-section">
         <div class="office-box">
           <div class="office-info">
-            <span class="label text-accent">LOKATSIYA</span>
-            <h2 class="h2">Samarqanddagi bosh ofis</h2>
+            <span class="label text-accent">{{ t('about.locationLabel') }}</span>
+            <h2 class="h2">{{ t('about.locationTitle') }}</h2>
             <p class="office-desc">
-              Biz Samarqand shahrining markazida faoliyat yuritamiz. Mijozlarimiz bilan yuzma-yuz uchrashib, loyihalarni batafsil rejalashtirish uchun eshiklarimiz doimo ochiq.
+              {{ t('about.locationDesc') }}
             </p>
             <div class="office-address">
-              <p><strong>Manzil:</strong> Samarqand shahri, Universitet xiyoboni — TODO</p>
-              <p><strong>Ish vaqti:</strong> Dushanba – Juma, 09:00 – 18:00</p>
+              <p><strong>{{ t('about.addressLabel') }}</strong> {{ t('about.addressVal') }}</p>
+              <p><strong>{{ t('about.workHoursLabel') }}</strong> {{ t('about.workHoursVal') }}</p>
+              <p><strong>{{ t('about.phoneLabel') }}</strong> <a href="tel:+998913131154" class="text-accent hover:underline">+998 91 313 11 54</a></p>
             </div>
           </div>
-          <div class="office-placeholder-map">
-            <div class="map-grid-pattern">
-              <span class="map-marker-dot"></span>
-              <span class="map-label">Samarqand ofisi (TODO: Xarita ulash)</span>
-            </div>
+          <div class="office-map-container">
+            <iframe
+              src="https://maps.google.com/maps?q=39.6743375,66.9735469&hl=uz&z=16&output=embed"
+              width="100%"
+              height="100%"
+              style="border:0;"
+              allowfullscreen="false"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title="GME Technologies bosh ofisi"
+              class="office-map-iframe"
+            ></iframe>
           </div>
         </div>
       </div>
 
       <!-- Partners marquee -->
-      <div class="about-partners">
-        <span class="label text-accent">HAMKORLIK</span>
+      <div v-if="partners.length" class="about-partners">
+        <span class="label text-accent">{{ t('servicesPage.collabTag') }}</span>
         <h2 class="h2 partners-title">{{ t('partners.title') }}</h2>
         <LogoMarquee :speed="25">
           <component
@@ -346,34 +401,25 @@ const values = [
 </template>
 
 <style scoped>
-.story-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 3rem;
-  padding-block: 2rem 4rem;
+.about-intro {
+  padding-bottom: 3.5rem;
   border-bottom: 1px solid var(--color-border-light);
 }
 
-@media (min-width: 768px) {
-  .story-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-  }
+.about-intro :deep(.section-heading) {
+  margin-bottom: 1.5rem;
 }
 
-.story-block {
+.about-story-content {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+  max-width: 76ch;
 }
 
-.story-title {
-  color: var(--color-ink);
-}
-
-.story-text {
-  font-size: 1.0625rem;
-  line-height: 1.6;
+.about-story-text {
+  font-size: 1.125rem;
+  line-height: 1.75;
   color: var(--color-muted);
 }
 
@@ -696,28 +742,11 @@ const values = [
   max-width: 36ch;
 }
 
-.dev-note {
-  background: rgba(255, 90, 31, 0.08);
-  border: 1px solid rgba(255, 90, 31, 0.2);
-  padding: 0.75rem 1rem;
-  border-radius: 2px;
-  margin-top: 1.5rem;
-  margin-bottom: 2.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.8125rem;
-}
-
-.dev-badge {
-  font-weight: 800;
-  color: var(--color-accent);
-}
-
 .team-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2rem;
+  margin-top: 2.5rem;
 }
 
 @media (min-width: 640px) {
@@ -740,11 +769,19 @@ const values = [
 .team-photo-placeholder {
   aspect-ratio: 1 / 1;
   background: #111820;
-  border-radius: 2px;
+  border-radius: 4px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.team-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .team-avatar-box {
@@ -817,35 +854,20 @@ const values = [
   color: var(--color-ink);
 }
 
-.office-placeholder-map {
+.office-map-container {
   aspect-ratio: 16 / 10;
+  min-height: 240px;
   background: #111820;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 20px rgba(11, 15, 20, 0.05);
 }
 
-.map-grid-pattern {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.map-marker-dot {
-  width: 12px;
-  height: 12px;
-  background: var(--color-accent);
-  border-radius: 50%;
-  box-shadow: 0 0 12px var(--color-accent);
-}
-
-.map-label {
-  font-size: 0.8125rem;
-  color: rgba(244, 242, 238, 0.7);
+.office-map-iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .about-partners {

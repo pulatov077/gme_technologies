@@ -17,11 +17,16 @@ const mobileOpen = ref(false)
 
 const navLinks = computed(() => [
   { to: '/', label: t('nav.home') },
-  { to: '/projects', label: t('nav.projects') },
   { to: '/services', label: t('nav.services') },
+  { to: '/projects', label: t('nav.projects') },
   { to: '/about', label: t('nav.about') },
   { to: '/contact', label: t('nav.contact') },
 ])
+
+const isActive = (to: string) => {
+  if (to === '/') return route.path === '/'
+  return route.path === to || route.path.startsWith(to)
+}
 
 function onScroll() {
   scrolled.value = window.scrollY > 60
@@ -44,9 +49,11 @@ watch(() => route.path, () => { mobileOpen.value = false })
       <!-- Wordmark logo -->
       <RouterLink to="/" class="app-header__logo" aria-label="GME Technologies — bosh sahifa">
         <span class="app-header__logo-brand">
-          <GmeLogo :size="26" class="app-header__logo-icon" />
-          <span class="app-header__wordmark">GME</span>
-          <span class="app-header__wordmark-sub">Technologies</span>
+          <GmeLogo :size="28" class="app-header__logo-icon" />
+          <span class="app-header__wordmark-group">
+            <span class="app-header__wordmark">GME</span>
+            <span class="app-header__wordmark-sub">Technologies</span>
+          </span>
         </span>
       </RouterLink>
 
@@ -57,7 +64,7 @@ watch(() => route.path, () => { mobileOpen.value = false })
           :key="link.to"
           :to="link.to"
           class="app-header__link"
-          :class="{ 'app-header__link--active': route.path === link.to }"
+          :class="{ 'app-header__link--active': isActive(link.to) }"
         >
           {{ link.label }}
         </RouterLink>
@@ -97,6 +104,7 @@ watch(() => route.path, () => { mobileOpen.value = false })
           :key="link.to"
           :to="link.to"
           class="app-header__mobile-link"
+          :class="{ 'app-header__mobile-link--active': isActive(link.to) }"
         >
           {{ link.label }}
         </RouterLink>
@@ -153,10 +161,12 @@ watch(() => route.path, () => { mobileOpen.value = false })
 .app-header__logo-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
 .app-header__logo-icon {
+  display: block;
+  flex-shrink: 0;
   transition: transform 0.3s var(--ease-out);
 }
 
@@ -164,26 +174,33 @@ watch(() => route.path, () => { mobileOpen.value = false })
   transform: scale(1.08);
 }
 
+.app-header__wordmark-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
 .app-header__wordmark {
-  font-size: 1.375rem;
+  font-size: 1.3125rem;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: var(--color-ink);
   line-height: 1;
 }
 
 .app-header__wordmark-sub {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-muted);
+  line-height: 1;
 }
 
 .app-header__nav {
   display: none;
   align-items: center;
-  gap: 2rem;
+  gap: 1.75rem;
   margin-left: auto;
 }
 
@@ -194,22 +211,23 @@ watch(() => route.path, () => { mobileOpen.value = false })
 }
 
 .app-header__link {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--color-muted);
   text-decoration: none;
-  letter-spacing: 0.01em;
-  transition: color var(--duration) var(--ease-out);
+  letter-spacing: -0.01em;
+  transition: color var(--duration) var(--ease-out), font-weight var(--duration) var(--ease-out);
   position: relative;
+  padding-block: 0.25rem;
 }
 
 .app-header__link::after {
   content: '';
   position: absolute;
-  bottom: -3px;
+  bottom: -4px;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background: var(--color-accent);
   transform: scaleX(0);
   transform-origin: left;
@@ -219,6 +237,10 @@ watch(() => route.path, () => { mobileOpen.value = false })
 .app-header__link:hover,
 .app-header__link--active {
   color: var(--color-ink);
+}
+
+.app-header__link--active {
+  font-weight: 700;
 }
 
 .app-header__link:hover::after,
@@ -301,12 +323,18 @@ watch(() => route.path, () => { mobileOpen.value = false })
 .app-header__mobile-link {
   display: block;
   padding: 0.875rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-ink);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--color-muted);
   text-decoration: none;
   border-bottom: 1px solid var(--color-border-light);
   letter-spacing: -0.01em;
+  transition: color var(--duration) var(--ease-out), font-weight var(--duration) var(--ease-out);
+}
+
+.app-header__mobile-link--active {
+  color: var(--color-ink);
+  font-weight: 700;
 }
 
 .app-header__mobile-actions {

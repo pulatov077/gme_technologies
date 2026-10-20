@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
-import { projects } from '@/data/projects'
+import { projects, getLocalizedProject } from '@/data/projects'
 import { stats } from '@/data/stats'
 import { partners } from '@/data/partners'
 import { residents } from '@/data/residents'
 import { testimonials } from '@/data/testimonials'
+import type { Locale } from '@/types'
 
 import SectionHeading from '@/components/SectionHeading.vue'
 import StatCounter from '@/components/StatCounter.vue'
@@ -15,30 +16,40 @@ import LogoMarquee from '@/components/LogoMarquee.vue'
 import LeadForm from '@/components/LeadForm.vue'
 import { useReveal } from '@/composables/useReveal'
 
-const { t } = useI18n()
+const { t, tm, locale } = useI18n()
 
-// Rotating hero words (Biznes, Korxona, Kompaniya, Tashkilotlar)
+// Rotating hero words
 const heroWordIndex = ref(0)
 let heroTimer: ReturnType<typeof setInterval> | null = null
 
 const heroWords = computed<string[]>(() => {
-  const words = t('hero.words')
-  if (Array.isArray(words)) return words
+  const words = tm('hero.words')
+  if (Array.isArray(words) && words.length > 0) return words as string[]
   return ['Biznes', 'Korxona', 'Kompaniya', 'Tashkilotlar']
+})
+
+watch(locale, () => {
+  heroWordIndex.value = 0
 })
 
 onMounted(() => {
   heroTimer = setInterval(() => {
-    heroWordIndex.value = (heroWordIndex.value + 1) % heroWords.value.length
-  }, 2000)
+    if (heroWords.value.length > 0) {
+      heroWordIndex.value = (heroWordIndex.value + 1) % heroWords.value.length
+    }
+  }, 2200)
 })
 
 onUnmounted(() => {
   if (heroTimer) clearInterval(heroTimer)
 })
 
+const localizedProjects = computed(() =>
+  projects.map((p) => getLocalizedProject(p, locale.value)),
+)
+
 const featuredProjects = computed(() =>
-  projects.filter((p) => p.featured).slice(0, 4),
+  localizedProjects.value.filter((p) => p.featured).slice(0, 4),
 )
 
 // Active service item for expandable list-style services
@@ -126,8 +137,24 @@ const whyUsPoints = computed(() => [
 
 // Testimonials state
 const currentTestimonialIndex = ref(0)
+const localizedTestimonials = computed(() => {
+  return testimonials.map((t) => {
+    const tr = t.translations?.[locale.value as Locale]
+    if (!tr) return t
+    return {
+      ...t,
+      quote: tr.quote ?? t.quote,
+      personRole: tr.personRole ?? t.personRole,
+    }
+  })
+})
+
 const activeTestimonial = computed(() => {
-  return testimonials[currentTestimonialIndex.value] || testimonials[0] || null
+  return (
+    localizedTestimonials.value[currentTestimonialIndex.value] ||
+    localizedTestimonials.value[0] ||
+    null
+  )
 })
 
 function nextTestimonial() {
@@ -150,26 +177,44 @@ const { el: statsRef } = useReveal(0.1)
       <div class="container">
         <div class="hero-header">
           <div class="hero-label-wrap">
-            <span class="label hero-label">Samarqand, O‘zbekiston</span>
+            <span class="label hero-label">{{ t('hero.location') }}</span>
             <span class="hero-status-pill">
               <span class="hero-status-dot"></span>
-              Yangi loyihalar uchun ochiqmiz
+              {{ t('hero.available') }}
             </span>
           </div>
 
           <h1 class="display hero-title">
-            <span class="hero-title__top">
-              <span class="hero-word-slot">
-                <Transition name="word-slide">
-                  <span :key="heroWordIndex" class="hero-word-active text-accent">
-                    {{ heroWords[heroWordIndex] }}
-                  </span>
-                </Transition>
+            <template v-if="t('hero.leadWordFirst') === 'true'">
+              <span class="hero-title__top">
+                <span class="hero-word-slot">
+                  <Transition name="word-slide">
+                    <span :key="`${locale}-${heroWordIndex}`" class="hero-word-active text-accent">
+                      {{ heroWords[heroWordIndex] }}
+                    </span>
+                  </Transition>
+                </span>
+                <span class="hero-title__suffix">&nbsp;{{ t('hero.suffix') }}</span>
               </span>
-              <span class="hero-title__suffix">&nbsp;{{ t('hero.suffix') }}</span>
-            </span>
-            <br />
-            <span class="hero-title__bottom">{{ t('hero.systems') }}</span>
+              <br />
+              <span class="hero-title__bottom">{{ t('hero.systems') }}</span>
+            </template>
+            <template v-else>
+              <span class="hero-title__top">
+                {{ t('hero.systems') }}
+              </span>
+              <br />
+              <span class="hero-title__bottom">
+                <span class="hero-title__prefix">{{ t('hero.prefix') }}&nbsp;</span>
+                <span class="hero-word-slot">
+                  <Transition name="word-slide">
+                    <span :key="`${locale}-${heroWordIndex}`" class="hero-word-active text-accent">
+                      {{ heroWords[heroWordIndex] }}
+                    </span>
+                  </Transition>
+                </span>
+              </span>
+            </template>
           </h1>
 
           <div class="hero-bottom-row">
@@ -190,7 +235,7 @@ const { el: statsRef } = useReveal(0.1)
         <!-- Featured Projects strip visible right at / below fold -->
         <div class="hero-strip">
           <div class="hero-strip__header">
-            <span class="label hero-strip__label">So‘nggi ishlar</span>
+            <span class="label hero-strip__label">{{ t('hero.recentWorks') }}</span>
             <RouterLink to="/projects" class="hero-strip__link">
               {{ t('cta.viewAll') }} →
             </RouterLink>
@@ -238,7 +283,7 @@ const { el: statsRef } = useReveal(0.1)
           >
             <StatCounter
               :value="stat.value"
-              :suffix="stat.suffix"
+              :suffix="stat.suffixKey ? t(stat.suffixKey) : stat.suffix"
               :label="t(stat.labelKey)"
             />
           </div>
@@ -275,7 +320,7 @@ const { el: statsRef } = useReveal(0.1)
     <section class="section-py section-dark">
       <div class="container">
         <SectionHeading
-          label="02 / XIZMATLAR"
+          :label="t('sectionLabels.services')"
           :title="t('services.title')"
           :subtitle="t('services.subtitle')"
           dark
@@ -310,7 +355,7 @@ const { el: statsRef } = useReveal(0.1)
 
         <div class="services-cta-row">
           <RouterLink to="/services" class="btn btn--outline">
-            Barcha xizmatlar bilan tanishish →
+            {{ t('hero.allServicesBtn') }}
           </RouterLink>
         </div>
       </div>
@@ -320,9 +365,9 @@ const { el: statsRef } = useReveal(0.1)
     <section class="section-py">
       <div class="container">
         <SectionHeading
-          label="03 / BOSQICHLAR"
+          :label="t('sectionLabels.process')"
           :title="t('process.title')"
-          subtitle="Shartnoma tuzishdan to to‘liq ishga tushirishgacha bo‘lgan shaffof yo‘l."
+          :subtitle="t('process.subtitle')"
         />
 
         <div class="process-grid">
@@ -345,9 +390,9 @@ const { el: statsRef } = useReveal(0.1)
         <div class="why-us-layout">
           <div class="why-us-intro">
             <SectionHeading
-              label="04 / ISHONCH"
+              :label="t('sectionLabels.whyUs')"
               :title="t('whyUs.title')"
-              subtitle="Biznesingiz uchun barqaror va xavfsiz texnologik hamkorlik."
+              :subtitle="t('whyUs.subtitle')"
             />
           </div>
 
@@ -367,12 +412,12 @@ const { el: statsRef } = useReveal(0.1)
     </section>
 
     <!-- 7. PARTNERS & RESIDENTS -->
-    <section class="section-py section-dark section-partners">
+    <section v-if="partners.length || residents.length" class="section-py section-dark section-partners">
       <div class="container">
         <SectionHeading
-          label="05 / EKOTIZIM"
+          :label="t('sectionLabels.ecosystem')"
           :title="t('partners.title')"
-          subtitle="O‘zbekiston va mintaqadagi yetakchi kompaniyalar bizga ishonadi."
+          :subtitle="t('partners.subtitle')"
           dark
         />
 
@@ -396,7 +441,7 @@ const { el: statsRef } = useReveal(0.1)
                 class="partner-logo-img"
               />
               <span class="partner-name">{{ partner.name }}</span>
-              <span v-if="!partner.placeholder" class="partner-badge-verified">Hamkor</span>
+              <span v-if="!partner.placeholder" class="partner-badge-verified">{{ t('partners.partnerTag') }}</span>
             </component>
           </LogoMarquee>
         </div>
@@ -406,7 +451,7 @@ const { el: statsRef } = useReveal(0.1)
           <div class="residents-card">
             <div class="residents-card__header">
               <span class="label text-accent">{{ t('partners.residents') }}</span>
-              <span class="tag-pill">Rasmiy</span>
+              <span class="tag-pill">{{ t('partners.officialTag') }}</span>
             </div>
             <div v-for="res in residents" :key="res.id" class="residents-detail">
               <h4 class="h3 text-white">{{ res.name }}</h4>
@@ -421,7 +466,7 @@ const { el: statsRef } = useReveal(0.1)
     <section v-if="testimonials.length" class="section-py section-testimonials">
       <div class="container">
         <SectionHeading
-          label="06 / FIKRLAR"
+          :label="t('sectionLabels.testimonials')"
           :title="t('testimonials.title')"
         />
 
@@ -469,26 +514,26 @@ const { el: statsRef } = useReveal(0.1)
       <div class="container">
         <div class="cta-layout">
           <div class="cta-intro">
-            <span class="label text-accent">Loyihani boshlash</span>
+            <span class="label text-accent">{{ t('ctaSection.tag') }}</span>
             <h2 class="display cta-title">
-              Keling, birga quramiz.
+              {{ t('ctaSection.title') }}
             </h2>
             <p class="cta-desc">
-              Goyangiz bormi yoki biznes jarayonlarini avtomatlashtirish kerakmi? Ariza qoldiring, 1 ish kuni ichida loyiha rejasi va smetasini taqdim etamiz.
+              {{ t('ctaSection.desc') }}
             </p>
 
             <div class="cta-quick-contacts">
               <div class="quick-contact-item">
-                <span class="label">Telefon</span>
-                <a href="tel:+998000000000" class="quick-contact-val">+998 00 000 00 00</a>
+                <span class="label">{{ t('ctaSection.phone') }}</span>
+                <a href="tel:+998913131154" class="quick-contact-val">+998 91 313 11 54</a>
               </div>
               <div class="quick-contact-item">
-                <span class="label">Telegram</span>
-                <a href="https://t.me/gmetechnologies" target="_blank" class="quick-contact-val">@gmetechnologies</a>
+                <span class="label">{{ t('ctaSection.telegram') }}</span>
+                <a href="https://t.me/gme_technologies" target="_blank" rel="noopener noreferrer" class="quick-contact-val">@gme_technologies</a>
               </div>
               <div class="quick-contact-item">
-                <span class="label">Manzil</span>
-                <span class="quick-contact-val">Samarqand sh., Universitet xiyoboni</span>
+                <span class="label">{{ t('ctaSection.address') }}</span>
+                <span class="quick-contact-val">{{ t('ctaSection.addressVal') }}</span>
               </div>
             </div>
           </div>
@@ -715,8 +760,22 @@ const { el: statsRef } = useReveal(0.1)
 .hero-strip__media {
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: 2px;
-  background-color: var(--color-ink);
+  border-radius: 4px;
+  background-color: #0b0f14;
+  border: 1px solid var(--color-border-light);
+  position: relative;
+}
+
+.hero-strip__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-strip__card:hover .hero-strip__img {
+  transform: scale(1.03);
 }
 
 .hero-strip__placeholder-content {
@@ -726,6 +785,7 @@ const { el: statsRef } = useReveal(0.1)
 .hero-strip__info {
   display: flex;
   flex-direction: column;
+  gap: 0.25rem;
 }
 
 .hero-strip__industry {
@@ -737,10 +797,14 @@ const { el: statsRef } = useReveal(0.1)
 }
 
 .hero-strip__title {
-  font-size: 1.0625rem;
-  font-weight: 700;
+  font-size: 0.9375rem;
+  font-weight: 600;
   color: var(--color-ink);
-  line-height: 1.3;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ─── Stats band ────────────────────────────────────────────────────────── */

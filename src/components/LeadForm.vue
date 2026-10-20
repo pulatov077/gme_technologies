@@ -101,6 +101,19 @@ function formatPhone(e: Event) {
       </span>
     </div>
 
+    <!-- Telegram (optional) -->
+    <div class="lf-field">
+      <label for="lf-telegram" class="lf-label">{{ t('form.telegram') }} ({{ t('form.optional') }})</label>
+      <input
+        id="lf-telegram"
+        v-model="fields.telegram"
+        type="text"
+        class="lf-input"
+        placeholder="@username"
+        autocomplete="off"
+      />
+    </div>
+
     <!-- Service -->
     <div class="lf-field" :class="{ 'lf-field--error': errors.service }">
       <label for="lf-service" class="lf-label">{{ t('form.service') }} *</label>

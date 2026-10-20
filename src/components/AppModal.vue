@@ -28,7 +28,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
         :aria-label="title"
         @click.self="emit('close')"
       >
-        <div class="modal-panel">
+        <div class="modal-panel"> 
           <!-- Header -->
           <div class="modal-header">
             <h2 class="modal-title">{{ title }}</h2>
@@ -46,7 +46,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
           <!-- Content slot -->
           <div class="modal-body">
             <slot />
-          </div>
+          </div>``
         </div>
       </div>
     </Transition>

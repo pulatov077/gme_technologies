@@ -30,17 +30,16 @@ const { current } = useCounter(props.value, 1800, isVisible)
 .stat-counter {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--color-border-light);
+  align-items: center;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   padding-top: 1.5rem;
-}
-
-:deep(.section-dark) .stat-counter {
-  border-top-color: var(--color-border);
 }
 
 .stat-counter__value-wrapper {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   line-height: 1;
 }
 
@@ -48,15 +47,11 @@ const { current } = useCounter(props.value, 1800, isVisible)
   font-size: clamp(2.5rem, 5vw, 4.25rem);
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: var(--color-ink);
-}
-
-:deep(.section-dark) .stat-counter__number {
-  color: var(--color-paper);
+  color: var(--color-paper, #f4f2ee);
 }
 
 .stat-counter__suffix {
-  font-size: clamp(1.75rem, 3.5vw, 3rem);
+  font-size: clamp(1.625rem, 3.2vw, 2.75rem);
   font-weight: 700;
   color: var(--color-accent);
   margin-left: 0.25rem;
@@ -66,11 +61,9 @@ const { current } = useCounter(props.value, 1800, isVisible)
   margin-top: 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-muted);
+  color: rgba(244, 242, 238, 0.7);
   line-height: 1.4;
-}
-
-:deep(.section-dark) .stat-counter__label {
-  color: rgba(244, 242, 238, 0.6);
+  letter-spacing: 0.01em;
+  text-align: center;
 }
 </style>

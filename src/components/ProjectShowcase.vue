@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { Project } from '@/types'
@@ -9,10 +10,55 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+
+// Scroll-reveal animation
+const showcaseEl = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
+onMounted(async () => {
+  await nextTick()
+  const el = showcaseEl.value
+  if (!el) return
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (prefersReduced) return
+
+  // Get child elements
+  const media = el.querySelector('.project-showcase__media') as HTMLElement | null
+  const content = el.querySelector('.project-showcase__content') as HTMLElement | null
+  if (!media && !content) return
+
+  // Set initial hidden state via inline styles
+  const targets = [media, content].filter(Boolean) as HTMLElement[]
+  targets.forEach((t, i) => {
+    t.style.opacity = '0'
+    t.style.transform = 'translateY(36px)'
+    t.style.transition = `opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${i * 0.12}s, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) ${i * 0.12}s`
+  })
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0]?.isIntersecting) {
+        targets.forEach((t) => {
+          t.style.opacity = '1'
+          t.style.transform = 'translateY(0)'
+        })
+        observer?.disconnect()
+      }
+    },
+    { threshold: 0.05, rootMargin: '0px 0px -150px 0px' },
+  )
+  observer.observe(el)
+})
+
+onUnmounted(() => {
+  observer?.disconnect()
+})
 </script>
 
 <template>
   <article
+    ref="showcaseEl"
     class="project-showcase"
     :class="{ 'project-showcase--reversed': reversed }"
   >

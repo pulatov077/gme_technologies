@@ -10,8 +10,8 @@ const { t } = useI18n()
 const year = computed(() => new Date().getFullYear())
 
 const navLinks = computed(() => [
-  { to: '/projects', label: t('nav.projects') },
   { to: '/services', label: t('nav.services') },
+  { to: '/projects', label: t('nav.projects') },
   { to: '/about', label: t('nav.about') },
   { to: '/contact', label: t('nav.contact') },
 ])
@@ -29,13 +29,14 @@ const legal = computed(() => t('footer.legal', { year: year.value }))
           <RouterLink to="/" class="app-footer__logo" aria-label="GME Technologies">
             <span class="app-footer__logo-brand">
               <GmeLogo :size="28" class="app-footer__logo-icon" />
-              <span class="app-footer__wordmark">GME</span>
-              <span class="app-footer__wordmark-sub">Technologies</span>
+              <span class="app-footer__wordmark-group">
+                <span class="app-footer__wordmark">GME</span>
+                <span class="app-footer__wordmark-sub">Technologies</span>
+              </span>
             </span>
           </RouterLink>
           <p class="app-footer__tagline">
-            <!-- TODO: qisqa tavsif -->
-            Samarqandan O'zbekiston bo'ylab raqamli yechimlar.
+            {{ t('footer.tagline') }}
           </p>
         </div>
 
@@ -54,18 +55,17 @@ const legal = computed(() => t('footer.legal', { year: year.value }))
         <!-- Contact block -->
         <address class="app-footer__contact">
           <p class="label app-footer__contact-label">{{ t('contact.title') }}</p>
-          <!-- TODO: replace with real contact info -->
-          <a href="tel:+998000000000" class="app-footer__contact-item">+998 00 000 00 00</a>
+          <a href="tel:+998913131154" class="app-footer__contact-item">+998 91 313 11 54</a>
           <a href="mailto:info@gmetech.uz" class="app-footer__contact-item">
             info@gmetech.uz
           </a>
           <a
-            href="https://t.me/gmetechnologies"
+            href="https://t.me/gme_technologies"
             target="_blank"
             rel="noopener noreferrer"
             class="app-footer__contact-item"
           >
-            @gmetechnologies
+            @gme_technologies
           </a>
           <p class="app-footer__contact-item">{{ t('footer.address') }}</p>
           <p class="app-footer__contact-item app-footer__hours">{{ t('footer.workHours') }}</p>
@@ -116,10 +116,12 @@ const legal = computed(() => t('footer.legal', { year: year.value }))
 .app-footer__logo-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
 .app-footer__logo-icon {
+  display: block;
+  flex-shrink: 0;
   transition: transform 0.3s var(--ease-out);
 }
 
@@ -127,20 +129,27 @@ const legal = computed(() => t('footer.legal', { year: year.value }))
   transform: scale(1.08);
 }
 
+.app-footer__wordmark-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
 .app-footer__wordmark {
-  font-size: 1.5rem;
+  font-size: 1.4375rem;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.03em;
   color: var(--color-paper);
   line-height: 1;
 }
 
 .app-footer__wordmark-sub {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(244, 242, 238, 0.5);
+  line-height: 1;
 }
 
 .app-footer__tagline {

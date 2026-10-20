@@ -2,11 +2,22 @@
 
 export type Locale = 'uz' | 'ru' | 'en'
 
+export interface ProjectTranslation {
+  title: string
+  client: string
+  industry: string
+  services: string[]
+  shortDesc: string
+  challenge: string
+  solution: string
+  results: ProjectResult[]
+}
+
 export interface Project {
   slug: string
-  placeholder: true // dev-only flag – remove when real data is added
-  title: string // "Project name — TODO"
-  client: string // "Client name — TODO"
+  placeholder: boolean // dev-only flag – false for real projects
+  title: string
+  client: string
   industry: string
   year: number
   services: string[]
@@ -17,7 +28,13 @@ export interface Project {
   techStack: string[]
   coverImage: string | null // path or null → render SVG placeholder
   gallery: string[]
+  galleryLayout?: 'portrait' | 'landscape'
   featured: boolean
+  botUrl?: string
+  githubUrl?: string
+  backendGithubUrl?: string
+  liveUrl?: string
+  translations?: Partial<Record<Locale, Partial<ProjectTranslation>>>
 }
 
 export interface ProjectResult {
@@ -46,6 +63,7 @@ export interface Stat {
   id: string
   value: number
   suffix: string // "+" | "%" | ""
+  suffixKey?: string
   labelKey: string // i18n key
 }
 
@@ -56,7 +74,8 @@ export interface Testimonial {
   personRole: string
   company: string
   videoUrl: string | null
-  placeholder: true
+  placeholder?: boolean
+  translations?: Partial<Record<Locale, { quote?: string; personRole?: string }>>
 }
 
 export interface TeamMember {
@@ -65,12 +84,13 @@ export interface TeamMember {
   role: string
   photoUrl: string | null
   linkedinUrl: string | null
-  placeholder: true
+  placeholder?: boolean
 }
 
 export interface LeadFormPayload {
   name: string
   phone: string
+  telegram?: string // telegram username (@username)
   service: string
   message: string
   consent: boolean
