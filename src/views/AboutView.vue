@@ -601,6 +601,12 @@ const values = computed(() => {
   border-color: var(--color-accent);
 }
 
+@media (hover: none), (max-width: 768px) {
+  .slider-nav {
+    opacity: 0.85;
+  }
+}
+
 .slider-nav--prev {
   left: 12px;
 }
@@ -659,6 +665,12 @@ const values = computed(() => {
 @media (max-width: 640px) {
   .event-slider {
     height: 220px;
+  }
+}
+
+@media (max-width: 400px) {
+  .event-slider {
+    height: 190px;
   }
 }
 

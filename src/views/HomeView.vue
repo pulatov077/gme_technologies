@@ -599,8 +599,12 @@ const { el: statsRef } = useReveal(0.1)
 
 @media (max-width: 640px) {
   .hero-title {
-    font-size: clamp(2.5rem, 11vw, 3.5rem);
-    line-height: 1.08;
+    font-size: clamp(2rem, 9.5vw, 3rem);
+    line-height: 1.12;
+  }
+  .hero-title__top {
+    flex-wrap: wrap;
+    white-space: normal;
   }
 }
 
@@ -707,6 +711,17 @@ const { el: statsRef } = useReveal(0.1)
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* ─── Hero strip ────────────────────────────────────────────────────────── */
@@ -887,7 +902,14 @@ const { el: statsRef } = useReveal(0.1)
 
 .service-item__content {
   padding-top: 1.5rem;
-  padding-left: clamp(2rem, 5vw, 4rem);
+  padding-left: clamp(1rem, 5vw, 4rem);
+}
+
+@media (max-width: 640px) {
+  .service-item__content {
+    padding-left: 0;
+    padding-top: 1rem;
+  }
 }
 
 .service-item__desc {
@@ -1229,7 +1251,7 @@ a.quick-contact-val:hover {
 
 .cta-form-card {
   background: #ffffff;
-  padding: clamp(2rem, 4vw, 3rem);
+  padding: clamp(1.25rem, 4vw, 3rem);
   border: 1px solid var(--color-border-light);
   border-radius: 2px;
   box-shadow: 0 10px 30px rgba(11, 15, 20, 0.04);

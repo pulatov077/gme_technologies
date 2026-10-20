@@ -128,7 +128,7 @@ const { t } = useI18n()
 
 .contact-card {
   background: #ffffff;
-  padding: 1.75rem;
+  padding: clamp(1.25rem, 4vw, 1.75rem);
   border: 1px solid var(--color-border-light);
   border-radius: 2px;
   display: flex;
@@ -215,7 +215,7 @@ const { t } = useI18n()
   background: #ffffff;
   border: 1px solid var(--color-border-light);
   border-radius: 2px;
-  padding: clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(1.25rem, 4vw, 3.5rem);
   box-shadow: 0 10px 30px rgba(11, 15, 20, 0.04);
 }
 

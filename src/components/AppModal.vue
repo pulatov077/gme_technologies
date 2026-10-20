@@ -46,7 +46,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
           <!-- Content slot -->
           <div class="modal-body">
             <slot />
-          </div>``
+          </div>
         </div>
       </div>
     </Transition>
@@ -65,6 +65,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
   justify-content: center;
   padding: 1rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-panel {
@@ -117,6 +118,22 @@ onUnmounted(() => document.removeEventListener('keydown', handleKeydown))
 .modal-body {
   padding: 1.75rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 480px) {
+  .modal-backdrop {
+    padding: 0.5rem;
+  }
+  .modal-panel {
+    max-height: calc(100dvh - 1rem);
+  }
+  .modal-header {
+    padding: 1.125rem 1.25rem;
+  }
+  .modal-body {
+    padding: 1.25rem;
+  }
 }
 
 /* Transition */

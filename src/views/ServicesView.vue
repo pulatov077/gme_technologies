@@ -297,7 +297,7 @@ const detailedServices = computed(() => {
   background: #ffffff;
   border: 1px solid var(--color-border-light);
   border-radius: 2px;
-  padding: clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(1.25rem, 5vw, 3.5rem);
 }
 
 .service-detail-card__header {
@@ -386,6 +386,7 @@ const detailedServices = computed(() => {
   padding: 1.25rem;
   border-radius: 2px;
   border-left: 2px solid var(--color-accent);
+  word-break: break-word;
 }
 
 .service-action {
@@ -397,7 +398,7 @@ const detailedServices = computed(() => {
   background: #ffffff;
   border: 1px solid var(--color-border-light);
   border-radius: 2px;
-  padding: clamp(2rem, 5vw, 4rem);
+  padding: clamp(1.25rem, 5vw, 4rem);
   display: grid;
   grid-template-columns: 1fr;
   gap: 3rem;

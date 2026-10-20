@@ -73,7 +73,7 @@ watch(() => route.path, () => { mobileOpen.value = false })
       <!-- Right controls -->
       <div class="app-header__actions">
         <LangSwitcher />
-        <button class="btn btn--accent" @click="open">
+        <button class="btn btn--accent app-header__cta-btn" @click="open">
           {{ t('cta.request') }}
         </button>
         <!-- Mobile burger -->
@@ -251,13 +251,36 @@ watch(() => route.path, () => { mobileOpen.value = false })
 .app-header__actions {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
   margin-left: auto;
+}
+
+.app-header__cta-btn {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .app-header__cta-btn {
+    display: inline-flex;
+  }
 }
 
 @media (min-width: 1024px) {
   .app-header__actions {
     margin-left: 0;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .app-header__inner {
+    gap: 0.5rem;
+  }
+  .app-header__wordmark {
+    font-size: 1.125rem;
+  }
+  .app-header__wordmark-sub {
+    display: none;
   }
 }
 

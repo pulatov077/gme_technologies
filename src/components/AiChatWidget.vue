@@ -1180,4 +1180,38 @@ onMounted(() => {
   opacity: 0;
   transform: translateY(16px) scale(0.96);
 }
+
+/* ─── Mobile Responsiveness ────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .ai-widget-wrapper {
+    bottom: 1rem;
+    right: 1rem;
+  }
+
+  .ai-fab-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .ai-teaser-bubble {
+    bottom: 64px;
+    right: 0;
+    max-width: calc(100vw - 2rem);
+    white-space: normal;
+    padding: 0.625rem 0.875rem;
+  }
+
+  .ai-chat-window {
+    position: fixed;
+    inset: auto 10px 72px 10px;
+    width: auto;
+    max-width: none;
+    height: min(540px, calc(100dvh - 86px));
+    border-radius: 14px;
+  }
+
+  .chat-input {
+    font-size: 16px !important;
+  }
+}
 </style>

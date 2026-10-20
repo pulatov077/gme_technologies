@@ -40,7 +40,7 @@ const { t } = useI18n()
       <h3 class="h3 project-card__title">
         <RouterLink :to="`/projects/${project.slug}`" class="project-card__title-link">
           {{ project.title }}
-        </RouterLink>
+        </RouterLink> 
       </h3>
 
       <p class="project-card__desc">{{ project.shortDesc }}</p>
