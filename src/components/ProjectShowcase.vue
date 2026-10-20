@@ -46,9 +46,17 @@ onMounted(async () => {
         observer?.disconnect()
       }
     },
-    { threshold: 0.05, rootMargin: '0px 0px -150px 0px' },
+    { threshold: 0.02, rootMargin: '0px 0px -20px 0px' },
   )
   observer.observe(el)
+
+  // Safety fallback: ensure content is revealed after 1.2s on mobile/tablets
+  setTimeout(() => {
+    targets.forEach((t) => {
+      t.style.opacity = '1'
+      t.style.transform = 'translateY(0)'
+    })
+  }, 1200)
 })
 
 onUnmounted(() => {

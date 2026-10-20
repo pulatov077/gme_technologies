@@ -325,11 +325,14 @@ watch(() => route.path, () => { mobileOpen.value = false })
   max-height: 0;
   transition: max-height 0.4s var(--ease-out);
   border-top: 1px solid transparent;
+  background: var(--color-paper);
 }
 
 .app-header__mobile-nav--open {
   max-height: 100vh;
   border-top-color: var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+  box-shadow: 0 12px 32px rgba(11, 15, 20, 0.08);
 }
 
 @media (min-width: 1024px) {
