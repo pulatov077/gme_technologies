@@ -1182,6 +1182,12 @@ onMounted(() => {
 }
 
 /* ─── Mobile Responsiveness ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .ai-teaser-bubble {
+    display: none !important;
+  }
+}
+
 @media (max-width: 480px) {
   .ai-widget-wrapper {
     bottom: 1rem;
@@ -1189,24 +1195,16 @@ onMounted(() => {
   }
 
   .ai-fab-btn {
-    width: 52px;
-    height: 52px;
-  }
-
-  .ai-teaser-bubble {
-    bottom: 64px;
-    right: 0;
-    max-width: calc(100vw - 2rem);
-    white-space: normal;
-    padding: 0.625rem 0.875rem;
+    width: 50px;
+    height: 50px;
   }
 
   .ai-chat-window {
     position: fixed;
-    inset: auto 10px 72px 10px;
+    inset: auto 10px 70px 10px;
     width: auto;
     max-width: none;
-    height: min(540px, calc(100dvh - 86px));
+    height: min(540px, calc(100dvh - 84px));
     border-radius: 14px;
   }
 

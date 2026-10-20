@@ -837,17 +837,26 @@ const values = computed(() => {
   background: #ffffff;
   border: 1px solid var(--color-border-light);
   border-radius: 2px;
-  padding: clamp(2rem, 5vw, 3.5rem);
+  padding: clamp(1.25rem, 4vw, 3.5rem);
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 3rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 1024px) {
   .office-box {
-    grid-template-columns: 1.2fr 1fr;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     align-items: center;
+    gap: 3rem;
   }
+}
+
+.office-info {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .office-desc {
@@ -864,21 +873,30 @@ const values = computed(() => {
   gap: 0.5rem;
   font-size: 0.9375rem;
   color: var(--color-ink);
+  word-break: break-word;
 }
 
 .office-map-container {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   aspect-ratio: 16 / 10;
-  min-height: 240px;
+  min-height: 220px;
   background: #111820;
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid var(--color-border-light);
   box-shadow: 0 4px 20px rgba(11, 15, 20, 0.05);
+  position: relative;
 }
 
 .office-map-iframe {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border: 0;
   display: block;
 }
 

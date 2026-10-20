@@ -261,31 +261,41 @@ onUnmounted(() => {
 
 .project-showcase__results {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1.25rem 1rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--color-border-light);
 }
 
+@media (max-width: 480px) {
+  .project-showcase__results {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .project-showcase__result-item {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .project-showcase__result-val {
-  font-size: 1.75rem;
+  font-size: clamp(1.15rem, 3.5vw, 1.75rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   color: var(--color-ink);
-  line-height: 1.1;
+  line-height: 1.15;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .project-showcase__result-label {
   margin-top: 0.375rem;
   font-size: 0.75rem;
   color: var(--color-muted);
-  line-height: 1.3;
+  line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
 .project-showcase__cta {

@@ -167,18 +167,25 @@ const { t } = useI18n()
   background: #ffffff;
   border: 1px solid var(--color-border-light);
   box-shadow: 0 4px 20px rgba(11, 15, 20, 0.04);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .map-wrapper {
   position: relative;
   width: 100%;
+  max-width: 100%;
   height: 260px;
   background: #111820;
+  overflow: hidden;
 }
 
 .map-iframe {
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border: 0;
   display: block;
   filter: contrast(102%) brightness(98%);
 }

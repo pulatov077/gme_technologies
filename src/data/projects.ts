@@ -206,7 +206,7 @@ export const projects: Project[] = [
       'GME Technologies jamoasi tomonidan New Renaissance Builders uchun MUN Caravan veb-platformasi ishlab chiqildi. Platformada xalqaro diplomatiya ruhidagi nafis dizayn (Playfair Display va Deep Navy), konferensiyalar rejalashtiruvchisi, delegatlar tayyorlash modullari, qo‘mitalar faoliyati va tashkiliy tuzilmalar o‘rtasidagi aloqalarni yagona interfeysda birlashtiruvchi zamonaviy arxitektura yaratildi.',
     results: [
       { label: 'Ekotizim qamrovi', value: 'To‘liq sikl' },
-      { label: 'Platforma holati', value: 'Jonli (Production)' },
+      { label: 'Platforma holati', value: 'Production' },
       { label: 'Xalqaro standart', value: '100% MUN' },
     ],
     techStack: ['React', 'TypeScript', 'Tailwind CSS', 'Vite', 'Vercel'],
