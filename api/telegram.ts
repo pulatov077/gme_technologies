@@ -37,7 +37,6 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     return
   }
 
-  // Allow GET request for health check
   if (req.method === 'GET') {
     res.statusCode = 200
     res.setHeader('Content-Type', 'application/json')
@@ -56,9 +55,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     if (typeof body === 'string') {
       try {
         body = JSON.parse(body)
-      } catch {
-        // keep
-      }
+      } catch {}
     }
 
     const update = body || {}
@@ -80,7 +77,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       const welcomeText = [
         'Assalomu alaykum! <b>GME Technologies</b> boshqaruv botiga xush kelibsiz. 🚀',
         '',
-        'Ushbu bot orqali saytdan kelib tushgan <b>arizalar</b> va <b>AI Assistent</b> bilan bo‘lgan 7 kunlik yozishmalar tahlilini kuzatib borishingiz mumkin.',
+        'Ushbu bot orqali saytdan kelib tushgan haqiqiy <b>arizalar</b> va <b>AI Assistent</b> bilan bo‘lgan yozishmalar tahlilini kuzatib borishingiz mumkin.',
         '',
         '👇 <b>Quyidagi menyu tugmalaridan birini tanlang:</b>',
       ].join('\n')
@@ -100,7 +97,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       const promptPasswordText = [
         '🔐 <b>Xavfsizlik tasdig‘i talab qilinadi!</b>',
         '━━━━━━━━━━━━━━━━━━',
-        'AI Assistent bilan so‘nggi 7 kunda muloqot qilgan barcha foydalanuvchilar, savollar va xabarlar tarixini ochish uchun <b>maxfiy admin parolini</b> yozib yuboring:',
+        'AI Assistent bilan so‘nggi 7 kunda bo‘lgan haqiqiy savollar va yozishmalar tarixini ochish uchun <b>maxfiy admin parolini</b> yozib yuboring:',
         '',
         '<i>(Masalan: parolingizni oddiy xabar sifatida kiritib yuboring)</i>',
       ].join('\n')
@@ -118,38 +115,45 @@ export default async function handler(req: VercelReq, res: VercelRes) {
 
     // ─── 3. Parol kiritilganda ────────────────────────────────────────────────
     if (userText === ADMIN_PASSWORD || lower === 'gme2026admin' || lower === 'admin2026') {
-      const aiReportText = [
-        '✅ <b>Parol muvaffaqiyatli tasdiqlandi!</b>',
-        '━━━━━━━━━━━━━━━━━━',
-        '🤖 <b>AI Assistent — So‘nggi 7 kunlik hisobot:</b>',
-        '━━━━━━━━━━━━━━━━━━',
-        '📊 <b>Jami savollar soni:</b> 18 ta',
-        '👥 <b>Noyob foydalanuvchilar:</b> 12 ta',
-        '📱 <b>Qurilmalar:</b> 65% Mobil, 35% Kompyuter',
-        '',
-        '💡 <b>Eng ko‘p so‘ralgan mavzular:</b>',
-        '• 🤖 <b>Telegram Bot & Mini App:</b> 45% (8 ta savol)',
-        '• 🌐 <b>Zamonaviy Vebsayt & SEO:</b> 30% (5 ta savol)',
-        '• ⚡ <b>CRM & Avtomatlashtirish:</b> 15% (3 ta savol)',
-        '• 💰 <b>Narxlar & To‘lovlar:</b> 10% (2 ta savol)',
-        '━━━━━━━━━━━━━━━━━━',
-        '📋 <b>So‘nggi berilgan savollar:</b>',
-        '1. ❓ <i>"Do‘konimiz uchun Telegram bot qanchaga tushadi?"</i>',
-        '   💬 <i>Javob: Katalog, Click/Payme to‘lov va smeta bepul beriladi...</i>',
-        '2. ❓ <i>"Kompaniyamiz uchun vebsayt muddati qancha bo‘ladi?"</i>',
-        '   💬 <i>Javob: Korporativ sayt 7-14 ish kunida tayyorlanadi...</i>',
-        '3. ❓ <i>"Kassa va omborxona CRM qilib bera olasizlarmi?"</i>',
-        '   💬 <i>Javob: Ha, xomashyo va ombor hisobini yurituvchi maxsus tizimlar...</i>',
-        '4. ❓ <i>"Sayt Google qidiruvda 1-o‘ringa chiqadimi?"</i>',
-        '   💬 <i>Javob: Barcha saytlar Google SEO talablariga 100% moslashtiriladi...</i>',
-        '5. ❓ <i>"Samarqanddagi ofisingiz qayerda joylashgan?"</i>',
-        '   💬 <i>Javob: Bosh ofisimiz Samarqand shahrida joylashgan...</i>',
-        '━━━━━━━━━━━━━━━━━━',
-        '🌐 <b>To‘liq tahlil va grafiklar:</b>',
-        'Saytning ariza formasiga kirib admin panelni ochishingiz mumkin.',
-      ].join('\n')
+      const aiLogs: any[] = (globalThis as any).__GME_AI_LOGS__ || []
 
-      await sendTelegramMessage(chatId, aiReportText, MAIN_KEYBOARD)
+      if (aiLogs.length === 0) {
+        const noLogsText = [
+          '✅ <b>Parol tasdiqlandi!</b>',
+          '━━━━━━━━━━━━━━━━━━',
+          '🤖 <b>AI Assistent — So‘nggi 7 kunlik hisobot:</b>',
+          '',
+          'ℹ️ <i>Hozircha saytdagi AI assistentga yangi savollar berilmadi.</i>',
+          'Mijozlar saytda savol berganda bu yerda real-vaqtda aks etadi.',
+          '━━━━━━━━━━━━━━━━━━',
+          '🌐 <b>Admin Panel:</b> gmetech.uz ariza formasi orqali to‘liq panelga kirishingiz mumkin.',
+        ].join('\n')
+
+        await sendTelegramMessage(chatId, noLogsText, MAIN_KEYBOARD)
+      } else {
+        const lines = [
+          '✅ <b>Parol muvaffaqiyatli tasdiqlandi!</b>',
+          '━━━━━━━━━━━━━━━━━━',
+          '🤖 <b>AI Assistent — So‘nggi 7 kunlik hisobot:</b>',
+          `📊 <b>Jami savollar soni:</b> ${aiLogs.length} ta`,
+          '━━━━━━━━━━━━━━━━━━',
+          '📋 <b>So‘nggi haqiqiy savollar:</b>',
+        ]
+
+        aiLogs.slice(0, 5).forEach((log, idx) => {
+          lines.push(`${idx + 1}. ❓ <i>"${escapeHtml(log.userMessage)}"</i>`)
+          if (log.botResponse) {
+            lines.push(`   💬 <i>${escapeHtml(log.botResponse.slice(0, 80))}...</i>`)
+          }
+          lines.push(`   ⏰ ${log.timestamp || 'Yaqinda'}`)
+        })
+
+        lines.push('━━━━━━━━━━━━━━━━━━')
+        lines.push('🌐 <i>To‘liq grafiklar va tahlil: gmetech.uz Admin Panelida.</i>')
+
+        await sendTelegramMessage(chatId, lines.join('\n'), MAIN_KEYBOARD)
+      }
+
       res.statusCode = 200
       res.end('OK')
       return
@@ -157,31 +161,39 @@ export default async function handler(req: VercelReq, res: VercelRes) {
 
     // ─── 4. Kelib tushgan arizalar ───────────────────────────────────────────
     if (userText.includes('Kelib tushgan arizalar') || lower === '/leads' || lower === 'arizalar') {
-      const leadsText = [
-        '📝 <b>Kelib tushgan so‘nggi arizalar:</b>',
-        '━━━━━━━━━━━━━━━━━━',
-        '1. 👤 <b>Shavkat Rahimov</b>',
-        '   📞 <code>+998 90 123 45 67</code>',
-        '   💬 <i>@shavkat_retail</i>',
-        '   💼 <b>Xizmat:</b> 🤖 Telegram bot (Kiyim do‘koni uchun)',
-        '   ⏰ <i>Bugun, 09:30</i> — 🟢 <b>Yangi</b>',
-        '',
-        '2. 👤 <b>Malika Karimova</b>',
-        '   📞 <code>+998 93 456 78 90</code>',
-        '   💬 <i>@malika_edu</i>',
-        '   💼 <b>Xizmat:</b> 🌐 Veb-sayt (O‘quv markaz)',
-        '   ⏰ <i>Kecha, 18:20</i> — 🟡 <b>Aloqada</b>',
-        '',
-        '3. 👤 <b>Bobur Mirzayev</b>',
-        '   📞 <code>+998 97 789 01 23</code>',
-        '   💬 <i>@bobur_logistics</i>',
-        '   💼 <b>Xizmat:</b> ⚡ CRM tizim (Ombor & Kuryer)',
-        '   ⏰ <i>19-oktyabr</i> — 🔵 <b>Bitim</b>',
-        '━━━━━━━━━━━━━━━━━━',
-        '💡 <i>Saytdan yangi mijoz ariza qoldirganda ushbu botga darhol yangi xabar keladi.</i>',
-      ].join('\n')
+      const leads: any[] = (globalThis as any).__GME_LEADS__ || []
 
-      await sendTelegramMessage(chatId, leadsText, MAIN_KEYBOARD)
+      if (leads.length === 0) {
+        const noLeadsText = [
+          '📝 <b>Kelib tushgan so‘nggi arizalar:</b>',
+          '━━━━━━━━━━━━━━━━━━',
+          'ℹ️ <i>Hozircha yangi arizalar kelib tushmadi.</i>',
+          'Sayt orqali (gmetech.uz) mijozlar ariza qoldirganda bu yerda real-vaqtda aks etadi.',
+        ].join('\n')
+
+        await sendTelegramMessage(chatId, noLeadsText, MAIN_KEYBOARD)
+      } else {
+        const lines = [
+          '📝 <b>Kelib tushgan haqiqiy arizalar:</b>',
+          '━━━━━━━━━━━━━━━━━━',
+        ]
+
+        leads.slice(0, 5).forEach((lead, idx) => {
+          lines.push(`${idx + 1}. 👤 <b>${escapeHtml(lead.name)}</b>`)
+          lines.push(`   📞 <code>${escapeHtml(lead.phone)}</code>`)
+          if (lead.telegram) lines.push(`   💬 @${escapeHtml(lead.telegram.replace(/^@/, ''))}`)
+          lines.push(`   💼 <b>Xizmat:</b> ${escapeHtml(lead.service)}`)
+          if (lead.message) lines.push(`   📝 <i>"${escapeHtml(lead.message)}"</i>`)
+          lines.push(`   ⏰ <i>${lead.createdAt || 'Yaqinda'}</i>`)
+          lines.push('')
+        })
+
+        lines.push('━━━━━━━━━━━━━━━━━━')
+        lines.push('💡 <i>Yangi ariza kelganda ushbu botga darhol xabar yuboriladi.</i>')
+
+        await sendTelegramMessage(chatId, lines.join('\n'), MAIN_KEYBOARD)
+      }
+
       res.statusCode = 200
       res.end('OK')
       return
@@ -197,8 +209,8 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         '<b>Kirish qoidasi:</b>',
         '1. Brauzeringizda <b>gmetech.uz</b> saytiga kiring.',
         '2. <b>«Ariza qoldirish»</b> tugmasini bosing.',
-        '3. <b>Telefon</b> maydoniga: <code>+998 91 313 11 54</code> kiriting.',
-        '4. <b>Ism</b> maydoniga: <code>gme2026admin</code> kiriting.',
+        '3. <b>Telefon:</b> <code>+998 91 313 11 54</code> kiriting.',
+        '4. <b>Ism:</b> <code>gme2026admin</code> kiriting.',
         '5. <b>«Ariza yuborish»</b> tugmasini bosing.',
         '',
         '🚀 Tizim ariza yubormasdan to‘g‘ridan-to‘g‘ri boshqaruv panelini ochadi!',
@@ -224,7 +236,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         '━━━━━━━━━━━━━━━━━━',
         '• <b>Bot nomi:</b> @gmetechleads_bot',
         '• <b>Holat:</b> 🟢 Online (Faol)',
-        '• <b>Vazifasi:</b> Sayt arizalari va AI yozishmalarini boshqarish',
+        '• <b>Vazifasi:</b> Sayt arizalari va AI Assistent tahlili',
         '• <b>Bosh ofis:</b> Samarqand shahar, O‘zbekiston',
         '• <b>Bog‘lanish:</b> +998 91 313 11 54',
         '• <b>Rasmiy sayt:</b> https://gmetech.uz',
@@ -288,4 +300,8 @@ async function sendTelegramMessage(
   } catch (err) {
     console.error('Failed to send Telegram message:', err)
   }
+}
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }

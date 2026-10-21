@@ -50,113 +50,27 @@ export function detectCategory(text: string): string {
   return '💡 Umumiy savol'
 }
 
-// Generate realistic initial seed logs if none exist
-function getSeedLogs(): AiChatLog[] {
-  const now = new Date()
-  const logs: AiChatLog[] = []
-
-  const sampleConversations = [
-    {
-      daysAgo: 0,
-      hoursAgo: 1,
-      q: 'Assalomu alaykum! Do‘konimiz uchun Telegram bot qanchaga tushadi?',
-      a: 'Telegram bot narxi loyihaning funksionaliga (savdo katalogi, Click/Payme to‘lovlar, CRM integratsiyasi) bog‘liq. Boshlang‘ich konsultatsiya va smeta mutlaqo bepul.',
-      cat: '🤖 Telegram Bot',
-      dev: 'Mobile' as const,
-    },
-    {
-      daysAgo: 0,
-      hoursAgo: 3,
-      q: 'Kompaniyamiz uchun korporativ vebsayt kerak, muddatlari qancha bo‘ladi?',
-      a: 'Zamonaviy korporativ veb-sayt tayyorlanishi o‘rtacha 7-14 ish kunini tashkil qiladi.',
-      cat: '🌐 Veb-sayt',
-      dev: 'Desktop' as const,
-    },
-    {
-      daysAgo: 1,
-      hoursAgo: 5,
-      q: 'Omborni va kassa tushumlarini hisoblaydigan CRM qilib bera olasizlarmi?',
-      a: 'Ha, albatta! Biz xomashyo, ombor va savdo hisobini yurituvchi maxsus CRM/ERP tizimlarini ishlab chiqamiz.',
-      cat: '⚡ CRM & Avtomatlashtirish',
-      dev: 'Desktop' as const,
-    },
-    {
-      daysAgo: 2,
-      hoursAgo: 12,
-      q: 'Saytimiz Google qidiruvda chiqishi uchun SEO xizmatlaringiz bormi?',
-      a: 'Ha, biz yaratgan barcha veb-saytlar Google SEO standartlariga 100% moslashtiriladi va qidiruvda yuqori o‘rinlarga chiqadi.',
-      cat: '🌐 Veb-sayt',
-      dev: 'Mobile' as const,
-    },
-    {
-      daysAgo: 3,
-      hoursAgo: 8,
-      q: 'Telegram Mini App (Web App) yaratish narxi qanaqa?',
-      a: 'Telegram Web Mini App loyihalari murakkabligiga qarab hisoblanadi. Batafsil smeta tayyorlab berishimiz mumkin.',
-      cat: '🤖 Telegram Bot',
-      dev: 'Mobile' as const,
-    },
-    {
-      daysAgo: 4,
-      hoursAgo: 15,
-      q: 'Samarqanddagi ofisingiz qayerda joylashgan?',
-      a: 'Bosh ofisimiz Samarqand shahrida joylashgan. Xohlasangiz ofisimizga tashrif buyurib loyihangizni bevosita muhokama qilishimiz mumkin.',
-      cat: '💡 Umumiy savol',
-      dev: 'Desktop' as const,
-    },
-    {
-      daysAgo: 5,
-      hoursAgo: 20,
-      q: 'Mobil ilova yaratish uchun iOS va Android ga alohida qilinadimi?',
-      a: 'Biz kross-platforma texnologiyalaridan foydalangan holda yagona kod bazasi bilan iOS va Android ilovalarni qisqa muddatda yaratamiz.',
-      cat: '📱 Mobil Ilova',
-      dev: 'Mobile' as const,
-    },
-    {
-      daysAgo: 6,
-      hoursAgo: 14,
-      q: 'Click va Payme to‘lov integratsiyasi qancha vaqt oladi?',
-      a: 'Click, Payme va Uzum to‘lov tizimlarini integratsiya qilish odatda 1-3 ish kunida amalga oshiriladi.',
-      cat: '💰 Narxlar & Smeta',
-      dev: 'Desktop' as const,
-    },
-  ]
-
-  for (const s of sampleConversations) {
-    const d = new Date(now.getTime() - s.daysAgo * 24 * 3600 * 1000 - s.hoursAgo * 3600 * 1000)
-    const dateStr = d.toISOString().split('T')[0] || ''
-    logs.push({
-      id: 'seed_' + Math.random().toString(36).substring(2, 9),
-      sessionId: 'usr_seed_' + (s.daysAgo % 4),
-      timestamp: d.toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' }),
-      date: dateStr,
-      userMessage: s.q,
-      botResponse: s.a,
-      category: s.cat,
-      device: s.dev,
-      locale: 'uz',
-    })
-  }
-
-  return logs
-}
-
 export function getAllLogs(): AiChatLog[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_AI_LOGS)
     if (raw) {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
+      if (Array.isArray(parsed)) {
+        // Filter out any demo/seed logs
+        const realLogs = parsed.filter(
+          (l: AiChatLog) => l && l.id && !l.id.startsWith('seed_')
+        )
+        if (realLogs.length !== parsed.length) {
+          saveLogs(realLogs)
+        }
+        return realLogs
       }
     }
-  } catch {
-    // fallback
+  } catch (err) {
+    console.warn('Error reading AI logs:', err)
   }
 
-  const seed = getSeedLogs()
-  saveLogs(seed)
-  return seed
+  return []
 }
 
 export function saveLogs(logs: AiChatLog[]): void {

@@ -70,6 +70,21 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       return
     }
 
+    const now = new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })
+
+    // Store in global memory for Admin Panel synchronization
+    ;(globalThis as any).__GME_LEADS__ = (globalThis as any).__GME_LEADS__ || []
+    ;(globalThis as any).__GME_LEADS__.unshift({
+      id: 'lead_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
+      name: String(name).trim(),
+      phone: String(phone).trim(),
+      telegram: telegram ? String(telegram).trim() : '',
+      service: service || 'custom',
+      message: message ? String(message).trim() : '',
+      createdAt: now,
+      status: 'new',
+    })
+
     const serviceLabels: Record<string, string> = {
       website: '🌐 Veb-sayt',
       telegram: '🤖 Telegram bot / mini-app',

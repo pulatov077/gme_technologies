@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   isAuthenticated,
@@ -18,6 +18,8 @@ import {
 } from '@/services/aiLogService'
 import {
   getAllLeads,
+  addLead,
+  syncLeadsWithServer,
   updateLeadStatus,
   deleteLead,
   getLeadsStats,
@@ -27,11 +29,15 @@ import type { AdminLead, AiChatLog, LeadStatus } from '@/types'
 
 const router = useRouter()
 
-// Guard on mount
-onMounted(() => {
+// Guard on mount & sync real leads
+onMounted(async () => {
   if (!checkAuth()) {
     router.replace('/')
+    return
   }
+  // Sync any real leads from server and refresh
+  await syncLeadsWithServer()
+  refreshData()
 })
 
 // Current Tab
@@ -58,6 +64,63 @@ function refreshData() {
   leads.value = getAllLeads()
   aiLogs.value = getLogsForLastDays(weeklyDays.value)
   weeklyStats.value = getWeeklyStats(weeklyDays.value)
+}
+
+// Dynamic Top Service calculation based on real data
+const topServiceLabel = computed(() => {
+  if (leads.value.length === 0 && weeklyStats.value.totalQuestions === 0) {
+    return 'Murojaatlar kutilmoqda'
+  }
+  const counts: Record<string, number> = {}
+  for (const l of leads.value) {
+    const sName = serviceNameMap[l.service] || l.service
+    counts[sName] = (counts[sName] || 0) + 2
+  }
+  for (const [cat, count] of Object.entries(weeklyStats.value.categoryCounts)) {
+    counts[cat] = (counts[cat] || 0) + count
+  }
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1])
+  return sorted[0] ? sorted[0][0] : 'Murojaatlar kutilmoqda'
+})
+
+const topServiceSub = computed(() => {
+  if (leads.value.length === 0 && weeklyStats.value.totalQuestions === 0) {
+    return 'Saytda arizalar paydo bo‘lganda'
+  }
+  return 'Mijozlar asosiy qiziqishi'
+})
+
+// Add Lead Modal State
+const showAddLeadModal = ref(false)
+const newLeadForm = reactive({
+  name: '',
+  phone: '',
+  telegram: '',
+  service: 'telegram',
+  message: '',
+})
+
+function openAddLeadModal() {
+  newLeadForm.name = ''
+  newLeadForm.phone = ''
+  newLeadForm.telegram = ''
+  newLeadForm.service = 'telegram'
+  newLeadForm.message = ''
+  showAddLeadModal.value = true
+}
+
+function handleCreateLead() {
+  if (!newLeadForm.name.trim() || !newLeadForm.phone.trim()) return
+  addLead({
+    name: newLeadForm.name,
+    phone: newLeadForm.phone,
+    telegram: newLeadForm.telegram,
+    service: newLeadForm.service,
+    message: newLeadForm.message,
+    status: 'new',
+  })
+  showAddLeadModal.value = false
+  refreshData()
 }
 
 // ─── LEADS TAB STATE ──────────────────────────────────────────────────────────
@@ -330,9 +393,9 @@ const serviceNameMap: Record<string, string> = {
           <div class="kpi-card">
             <div class="kpi-icon-wrap kpi-icon-wrap--purple">🎯</div>
             <div class="kpi-info">
-              <span class="kpi-num">Telegram Bot & CRM</span>
+              <span class="kpi-num">{{ topServiceLabel }}</span>
               <span class="kpi-label">Eng ko‘p so‘ralgan xizmat</span>
-              <span class="kpi-sub">Mijozlar asosiy qiziqishi</span>
+              <span class="kpi-sub">{{ topServiceSub }}</span>
             </div>
           </div>
         </div>
@@ -351,8 +414,11 @@ const serviceNameMap: Record<string, string> = {
               </button>
             </div>
 
-            <div v-if="leads.length === 0" class="empty-state">
-              Hozircha arizalar mavjud emas.
+            <div v-if="leads.length === 0" class="empty-state py-4">
+              <span class="empty-text">Hozircha yangi arizalar mavjud emas.</span>
+              <button class="link-btn mt-2" @click="openAddLeadModal">
+                ➕ Yangi ariza kiritish
+              </button>
             </div>
 
             <div v-else class="preview-list">
@@ -469,6 +535,9 @@ const serviceNameMap: Record<string, string> = {
                 Bitim tuzildi ({{ leadsStats.dealCount }})
               </button>
 
+              <button class="action-btn-sm action-btn-sm--primary" @click="openAddLeadModal">
+                ➕ Yangi ariza qo‘shish
+              </button>
               <button class="action-btn-sm" @click="exportLeadsAsJson">
                 📥 JSON Eksport
               </button>
@@ -477,7 +546,12 @@ const serviceNameMap: Record<string, string> = {
 
           <!-- Leads Cards List -->
           <div v-if="filteredLeads.length === 0" class="empty-state">
-            Mos keluvchi arizalar topilmadi.
+            <div class="empty-icon">📭</div>
+            <h4 class="empty-title">Hozircha arizalar mavjud emas</h4>
+            <p class="empty-text">Mijozlar sayt orqali ariza yuborganida bu yerda real-vaqtda aks etadi yoki yangi arizani o‘zingiz kiritishingiz mumkin.</p>
+            <button class="action-btn-sm action-btn-sm--primary mt-3" @click="openAddLeadModal">
+              ➕ Birinchi arizani kiritish
+            </button>
           </div>
 
           <div v-else class="leads-grid">
@@ -868,6 +942,80 @@ const serviceNameMap: Record<string, string> = {
           </div>
         </div>
       </section>
+    </div>
+
+    <!-- Add Lead Modal -->
+    <div v-if="showAddLeadModal" class="modal-backdrop" @click.self="showAddLeadModal = false">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title">➕ Yangi Mijoz Arizasini Kiritish</h3>
+          <button class="modal-close-btn" @click="showAddLeadModal = false">✕</button>
+        </div>
+        <form class="modal-form" @submit.prevent="handleCreateLead">
+          <div class="form-group">
+            <label class="form-label">Mijoz Ismi *</label>
+            <input
+              v-model="newLeadForm.name"
+              type="text"
+              class="form-input"
+              placeholder="Masalan: Sardor Aliyev"
+              required
+              autofocus
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Telefon Raqami *</label>
+            <input
+              v-model="newLeadForm.phone"
+              type="tel"
+              class="form-input"
+              placeholder="+998 90 123 45 67"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Telegram (ixtiyoriy)</label>
+            <input
+              v-model="newLeadForm.telegram"
+              type="text"
+              class="form-input"
+              placeholder="@username"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Xizmat turi</label>
+            <select v-model="newLeadForm.service" class="form-input">
+              <option value="telegram">🤖 Telegram bot / mini-app</option>
+              <option value="website">🌐 Veb-sayt</option>
+              <option value="crm">⚡ CRM & Avtomatlashtirish</option>
+              <option value="mobile">📱 Mobil ilova</option>
+              <option value="custom">💡 Boshqa / Maxsus loyiha</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Izoh / Mijoz talablari</label>
+            <textarea
+              v-model="newLeadForm.message"
+              class="form-input form-textarea"
+              rows="3"
+              placeholder="Mijoz qanday funksional xohlashi haqida..."
+            ></textarea>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" @click="showAddLeadModal = false">
+              Bekor qilish
+            </button>
+            <button type="submit" class="btn-submit">
+              💾 Saqlash
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>
@@ -2054,6 +2202,137 @@ const serviceNameMap: Record<string, string> = {
   font-size: 0.9375rem;
 }
 
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.empty-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-text {
+  font-size: 0.875rem;
+  color: #94A3B8;
+  max-width: 440px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.action-btn-sm--primary {
+  background: #FF5A1F !important;
+  color: #FFFFFF !important;
+  border-color: #FF5A1F !important;
+  font-weight: 700;
+}
+.action-btn-sm--primary:hover {
+  background: #E04E17 !important;
+}
+
+/* ─── Modal ──────────────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.modal-card {
+  background: #0E131A;
+  border: 1px solid rgba(255, 90, 31, 0.3);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  padding: 1.75rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255, 90, 31, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.1875rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+.modal-close-btn:hover {
+  color: #FFFFFF;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-cancel {
+  background: #17212F;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94A3B8;
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-cancel:hover {
+  color: #FFFFFF;
+}
+
+.btn-submit {
+  background: #FF5A1F;
+  border: none;
+  color: #FFFFFF;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 90, 31, 0.35);
+}
+.btn-submit:hover {
+  background: #E04E17;
+}
+
 .mb-3 { margin-bottom: 0.75rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
 .mt-4 { margin-top: 1rem; }
+.py-4 { padding-top: 1rem; padding-bottom: 1rem; }
 </style>
