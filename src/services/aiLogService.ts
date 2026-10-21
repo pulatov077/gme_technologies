@@ -198,9 +198,7 @@ export async function logAiInteraction(params: {
   existing.unshift(newLog)
   saveLogs(existing)
 
-  // Send real-time notification to Telegram Bot
-  sendTelegramNotification(newLog)
-
+  // AI chat logs are confidential and only visible in Admin Panel or Bot on password prompt
   return newLog
 }
 
