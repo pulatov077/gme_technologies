@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { checkAuth } from '@/services/adminAuth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -42,6 +43,20 @@ const router = createRouter({
       name: 'contact',
       component: () => import('@/views/ContactView.vue'),
       meta: { titleKey: 'contact.title' },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('@/views/AdminView.vue'),
+      meta: { requiresAdmin: true, titleKey: 'GME Administration' },
+      beforeEnter: (_, __, next) => {
+        if (checkAuth()) {
+          next()
+        } else {
+          // Stealth protection: unauthorized visitors are redirected to home page
+          next({ path: '/' })
+        }
+      },
     },
     {
       path: '/:pathMatch(.*)*',

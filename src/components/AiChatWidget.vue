@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useModal } from '@/composables/useModal'
+import { logAiInteraction } from '@/services/aiLogService'
 
 interface ActionButton {
   label: string
@@ -386,6 +387,13 @@ function sendMessage(text?: string) {
     })
     isTyping.value = false
     scrollToBottom()
+
+    // Log conversation and notify Telegram
+    logAiInteraction({
+      userMessage: content,
+      botResponse: response.text,
+      locale: currentLang.value,
+    })
   }, 650)
 }
 

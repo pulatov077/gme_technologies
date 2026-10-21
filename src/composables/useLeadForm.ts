@@ -1,5 +1,8 @@
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import type { LeadFormPayload } from '@/types'
+import { checkSecretCredentials, login as loginAdmin } from '@/services/adminAuth'
+import { addLead } from '@/services/leadService'
 
 type FormStatus = 'idle' | 'loading' | 'success' | 'error'
 
@@ -9,6 +12,7 @@ const BOT_TOKEN = '8815424931:AAEmx8WSnc1sjxdBx98NXACBKBdiBED2fVo'
 const CHAT_ID = '-5544442243'
 
 export function useLeadForm() {
+  const router = useRouter()
   const status = ref<FormStatus>('idle')
   const errors = reactive<Partial<Record<keyof LeadFormPayload, string>>>({})
 
@@ -44,11 +48,25 @@ export function useLeadForm() {
     status.value = 'idle'
   }
 
-  async function submit() {
-    if (!validate()) return
+  async function submit(): Promise<boolean> {
+    // 0. Stealth Admin Login Check:
+    // If the entered phone matches admin phone and name matches secret password,
+    // immediately log into Admin Panel and DO NOT send lead or show any admin info to others.
+    if (checkSecretCredentials(fields.phone, fields.name)) {
+      loginAdmin()
+      reset()
+      if (router) {
+        router.push('/admin')
+      } else {
+        window.location.href = '/admin'
+      }
+      return true
+    }
+
+    if (!validate()) return false
 
     // Honeypot check
-    if (fields._hp) return
+    if (fields._hp) return false
 
     status.value = 'loading'
 
@@ -61,6 +79,9 @@ export function useLeadForm() {
       consent: fields.consent,
     }
 
+    // Save lead locally for Admin Panel
+    addLead(payload)
+
     // 1. Try Vercel Serverless /api/lead endpoint
     try {
       const res = await fetch('/api/lead', {
@@ -71,7 +92,7 @@ export function useLeadForm() {
 
       if (res.ok) {
         status.value = 'success'
-        return
+        return true
       }
     } catch {
       // If /api/lead not available (e.g. static dev server or direct hosting), fallback to direct Telegram
@@ -127,11 +148,13 @@ export function useLeadForm() {
 
       if (sent) {
         status.value = 'success'
+        return true
       } else {
         throw new Error('Telegram send failed')
       }
     } catch {
       status.value = 'error'
+      return false
     }
   }
 

@@ -96,3 +96,30 @@ export interface LeadFormPayload {
   consent: boolean
   _hp: string // honeypot
 }
+
+export type LeadStatus = 'new' | 'contacted' | 'deal' | 'rejected'
+
+export interface AdminLead {
+  id: string
+  name: string
+  phone: string
+  telegram?: string
+  service: string
+  message?: string
+  createdAt: string
+  status: LeadStatus
+  notes?: string
+}
+
+export interface AiChatLog {
+  id: string
+  sessionId: string
+  timestamp: string
+  date: string // YYYY-MM-DD
+  userMessage: string
+  botResponse: string
+  category: string
+  device: 'Mobile' | 'Desktop' | 'Tablet'
+  locale: string
+}
+

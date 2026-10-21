@@ -1,25 +1,29 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import AppHeader from '@/components/AppHeader.vue'
 import AppFooter from '@/components/AppFooter.vue'
 import AiChatWidget from '@/components/AiChatWidget.vue'
+
+const route = useRoute()
+const isAdminRoute = computed(() => route.name === 'admin')
 </script>
 
 <template>
-  <div class="app-root">
-    <a href="#main-content" class="skip-link">
+  <div class="app-root" :class="{ 'app-root--admin': isAdminRoute }">
+    <a v-if="!isAdminRoute" href="#main-content" class="skip-link">
       Asosiy qismga o‘tish
     </a>
 
-    <AppHeader />
+    <AppHeader v-if="!isAdminRoute" />
 
-    <main id="main-content" class="main-content">
+    <main id="main-content" class="main-content" :class="{ 'main-content--admin': isAdminRoute }">
       <RouterView />
     </main>
 
-    <AppFooter />
+    <AppFooter v-if="!isAdminRoute" />
 
-    <AiChatWidget />
+    <AiChatWidget v-if="!isAdminRoute" />
   </div>
 </template>
 
@@ -33,6 +37,10 @@ import AiChatWidget from '@/components/AiChatWidget.vue'
 .main-content {
   flex: 1 0 auto;
   padding-top: 5rem;
+}
+
+.main-content--admin {
+  padding-top: 0 !important;
 }
 
 .skip-link {
