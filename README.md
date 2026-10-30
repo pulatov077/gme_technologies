@@ -1,60 +1,23 @@
-# GME Technologies — Rasmiy Veb-sayti
+# GME Technologies
 
-Samarqanddagi IT kompaniyasi uchun korporativ veb-sayt.
+> Samarqanddagi zamonaviy IT-kompaniya va raqamli yechimlar ishlab chiquvchisi.
 
-- **Stack:** Vue 3 (Composition API, `<script setup>`), TypeScript, Vite, Vue Router, vue-i18n, Tailwind CSS (v4 via `@tailwindcss/vite`).
-- **Dizayn tamoyillari:** Arxitekturaviy, qat’iy 12 ustunli to‘r, Manrope shrifti, qora (`#0B0F14`) va iliq qog‘oz (`#F4F2EE`), signal zarg‘aldoq (`#FF5A1F`) aksent.
-
----
-
-## Ishga tushirish (Development)
-
-```bash
-# Paketlarni o‘rnatish
-npm install
-
-# Mahalliy serverni ishga tushirish
-npm run dev
-```
-
-Mahalliy server odatda `http://localhost:5173` manzilida ishlaydi.
+GME Technologies — korxonalar, davlat tashkilotlari va startaplar uchun murakkab veb-platformalar, Telegram bot va Web Mini-Applar, CRM/ERP tizimlari hamda biznes jarayonlarini avtomatlashtirish xizmatlarini ishlab chiquvchi IT kompaniya.
 
 ---
 
-## Loyihani yig‘ish (Production Build)
+### Asosiy xizmatlarimiz:
 
-```bash
-# TypeScript tekshiruvi va production build
-npm run build
-
-# Yig‘ilgan natijani ko‘rish
-npm run preview
-```
+- **Veb-saytlar va platformalar:** Yuqori yuklamaga chidamli korporativ saytlar, portallar va e-commerce tizimlari.
+- **Telegram Bot & Mini-Applar:** Click, Payme to‘lov integratsiyasi, servislar va yetkazib berish xizmatlari uchun to‘liq avtomatlashtirilgan Web Mini-Applar.
+- **CRM va biznes avtomatlashtirish:** Savdo, ombor, mijozlar bazasi va moliyaviy hisobotlarni raqamlashtirish.
+- **Mobil ilovalar:** iOS va Android uchun qulay, xavfsiz va zamonaviy mobil yechimlar.
 
 ---
 
-## Kodni tekshirish (Lint & Format)
+### Kontaktlar va rasmiy aloqa:
 
-```bash
-# Linter (oxlint + eslint)
-npm run lint
-
-# Formatlash (prettier)
-npm run format
-```
-
----
-
-## Muhit o‘zgaruvchilari (Environment Variables)
-
-`.env.example` faylidan nusxa olib `.env` yarating:
-
-```env
-VITE_API_URL=https://api.gmetechnologies.uz
-
-# Supabase (Ma'lumotlar bazasi)
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-*Eslatma: Agar `VITE_API_URL` ko‘rsatilmasa, ishlab chiqish rejimida (dev mode) ariza ma’lumotlari brauzer konsoliga chiqariladi va muvaffaqiyatli topshirilgan holati ko‘rsatiladi.*
+- **Veb-sayt:** [gmetech.uz](https://gmetech.uz)
+- **Telegram:** [@gme_technologies](https://t.me/gme_technologies)
+- **Telefon:** +998 91 313 11 54
+- **Manzil:** O‘zbekiston, Samarqand sh., Ibn Sino ko‘chasi, 17a

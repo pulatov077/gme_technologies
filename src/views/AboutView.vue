@@ -787,6 +787,14 @@ const values = computed(() => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.team-card:hover .team-photo-placeholder {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(11, 15, 20, 0.12);
+  border-color: rgba(255, 90, 31, 0.35);
 }
 
 .team-photo {
@@ -804,12 +812,23 @@ const values = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-card:hover .team-avatar-box {
+  background: rgba(255, 90, 31, 0.15);
+  box-shadow: 0 0 20px rgba(255, 90, 31, 0.3);
 }
 
 .team-initials {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-paper);
+  transition: color 0.3s ease;
+}
+
+.team-card:hover .team-initials {
+  color: var(--color-accent);
 }
 
 .team-info {
