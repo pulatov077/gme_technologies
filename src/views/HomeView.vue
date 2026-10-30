@@ -1053,6 +1053,32 @@ const { el: statsRef } = useReveal(0.1)
   }
 }
 
+@media (max-width: 640px) {
+  .projects-section-header {
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+  }
+
+  .projects-header-actions {
+    width: 100%;
+  }
+
+  .projects-scroll-tracker {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tracker-label {
+    max-width: 150px;
+  }
+}
+
+@media (hover: none) or (pointer: coarse) {
+  .hero-strip__sheen {
+    display: none !important;
+  }
+}
+
 /* ─── Services list (01-05) ────────────────────────────────────────────── */
 .services-list {
   display: flex;

@@ -276,6 +276,13 @@ onUnmounted(() => {
   transform: translate(1px, -1px);
 }
 
+@media (hover: none) or (pointer: coarse) {
+  .project-cursor-tag,
+  .project-showcase__sheen {
+    display: none !important;
+  }
+}
+
 .project-showcase__img {
   width: 100%;
   height: 100%;
