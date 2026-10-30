@@ -51,19 +51,10 @@ npm run format
 
 ```env
 VITE_API_URL=https://api.gmetechnologies.uz
+
+# Supabase (Ma'lumotlar bazasi)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 *Eslatma: Agar `VITE_API_URL` ko‘rsatilmasa, ishlab chiqish rejimida (dev mode) ariza ma’lumotlari brauzer konsoliga chiqariladi va muvaffaqiyatli topshirilgan holati ko‘rsatiladi.*
-
----
-
-## TODO: Haqiqiy ma’lumotlarni kiritish
-
-Barcha ma’lumotlar alohida typed fayllarga ajratilgan va `placeholder: true` belgisi qo‘yilgan:
-
-1. **Loyihalar:** [`src/data/projects.ts`](src/data/projects.ts)
-2. **Statistika raqamlari:** [`src/data/stats.ts`](src/data/stats.ts)
-3. **Mijozlar fikrlari:** [`src/data/testimonials.ts`](src/data/testimonials.ts)
-4. **Jamoa:** [`src/data/team.ts`](src/data/team.ts)
-5. **Hamkorlar va Rezidentlik:** [`src/data/partners.ts`](src/data/partners.ts), [`src/data/residents.ts`](src/data/residents.ts)
-6. **Bog‘lanish kontaktlari:** [`src/locales/uz.ts`](src/locales/uz.ts), [`src/locales/ru.ts`](src/locales/ru.ts), [`src/locales/en.ts`](src/locales/en.ts)

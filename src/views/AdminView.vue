@@ -14,6 +14,7 @@ import {
   getWeeklyStats,
   exportLogsAsJson,
   clearAllLogs,
+  syncAiLogsWithServer,
   type AiWeeklyStats,
 } from '@/services/aiLogService'
 import {
@@ -35,8 +36,12 @@ onMounted(async () => {
     router.replace('/')
     return
   }
-  // Sync any real leads from server and refresh
-  await syncLeadsWithServer()
+  // Sync any real leads and AI logs from Supabase/server and refresh
+  try {
+    await Promise.allSettled([syncLeadsWithServer(), syncAiLogsWithServer()])
+  } catch (err) {
+    console.warn('Sync failed:', err)
+  }
   refreshData()
 })
 
@@ -153,6 +158,12 @@ function handleStatusChange(id: string, newStatus: LeadStatus) {
   refreshData()
 }
 
+function handleContactAction(lead: AdminLead) {
+  if (lead.status === 'new') {
+    handleStatusChange(lead.id, 'contacted')
+  }
+}
+
 function handleNotesBlur(id: string, notes: string) {
   updateLeadStatus(id, leads.value.find((l) => l.id === id)?.status || 'new', notes)
   refreshData()
@@ -172,11 +183,16 @@ const aiPasswordInput = ref('')
 const aiPasswordError = ref(false)
 const showAiPassword = ref(false)
 
-function unlockAiLogs() {
+async function unlockAiLogs() {
   if (verifyPassword(aiPasswordInput.value)) {
     isAiUnlocked.value = true
     aiPasswordError.value = false
     aiPasswordInput.value = ''
+    try {
+      await syncAiLogsWithServer()
+    } catch {
+      // fallback
+    }
     refreshData()
   } else {
     aiPasswordError.value = true
@@ -431,7 +447,7 @@ const serviceNameMap: Record<string, string> = {
                     </span>
                   </div>
                   <div class="preview-meta">
-                    <a :href="`tel:${lead.phone}`" class="phone-link">📞 {{ lead.phone }}</a>
+                    <a :href="`tel:${lead.phone}`" class="phone-link" @click="handleContactAction(lead)">📞 {{ lead.phone }}</a>
                     <span class="service-tag">{{ serviceNameMap[lead.service] || lead.service }}</span>
                   </div>
                 </div>
@@ -584,7 +600,7 @@ const serviceNameMap: Record<string, string> = {
               <div class="lead-card-body">
                 <div class="lead-info-row">
                   <span class="info-lbl">Telefon:</span>
-                  <a :href="`tel:${lead.phone}`" class="info-val phone-link">
+                  <a :href="`tel:${lead.phone}`" class="info-val phone-link" @click="handleContactAction(lead)">
                     📞 {{ lead.phone }}
                   </a>
                 </div>
@@ -596,6 +612,7 @@ const serviceNameMap: Record<string, string> = {
                     target="_blank"
                     rel="noopener noreferrer"
                     class="info-val tg-link"
+                    @click="handleContactAction(lead)"
                   >
                     ✈️ @{{ lead.telegram.replace(/^@/, '') }}
                   </a>
@@ -627,7 +644,11 @@ const serviceNameMap: Record<string, string> = {
               </div>
 
               <div class="lead-card-footer">
-                <a :href="`tel:${lead.phone}`" class="card-action-btn card-action-btn--call">
+                <a
+                  :href="`tel:${lead.phone}`"
+                  class="card-action-btn card-action-btn--call"
+                  @click="handleContactAction(lead)"
+                >
                   📞 Qo‘ng‘iroq qilish
                 </a>
                 <a
@@ -636,6 +657,7 @@ const serviceNameMap: Record<string, string> = {
                   target="_blank"
                   rel="noopener noreferrer"
                   class="card-action-btn card-action-btn--tg"
+                  @click="handleContactAction(lead)"
                 >
                   ✈️ Telegram
                 </a>

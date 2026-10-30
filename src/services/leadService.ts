@@ -1,4 +1,5 @@
 import type { AdminLead, LeadStatus } from '@/types'
+import { supabase } from '@/services/supabase'
 
 const STORAGE_KEY_LEADS = 'gme_admin_leads'
 
@@ -9,9 +10,14 @@ export function getAllLeads(): AdminLead[] {
     if (raw) {
       const parsed = JSON.parse(raw)
       if (Array.isArray(parsed)) {
-        // Strip out any demo/seed leads
         const realLeads = parsed.filter(
-          (l: AdminLead) => l && l.id && !l.id.startsWith('lead_seed_') && !l.name.includes('Shavkat Rahimov') && !l.name.includes('Malika Karimova') && !l.name.includes('Bobur Mirzayev')
+          (l: AdminLead) =>
+            l &&
+            l.id &&
+            !l.id.startsWith('lead_seed_') &&
+            !l.name.includes('Shavkat Rahimov') &&
+            !l.name.includes('Malika Karimova') &&
+            !l.name.includes('Bobur Mirzayev')
         )
         if (realLeads.length !== parsed.length) {
           saveLeads(realLeads)
@@ -22,8 +28,6 @@ export function getAllLeads(): AdminLead[] {
   } catch (err) {
     console.warn('Error reading leads from storage:', err)
   }
-
-  // Return empty array if no real leads exist yet
   return []
 }
 
@@ -35,7 +39,67 @@ export function saveLeads(leads: AdminLead[]): void {
   }
 }
 
-export function addLead(payload: {
+// Map database row to AdminLead
+function mapRowToLead(row: any): AdminLead {
+  return {
+    id: String(row.id),
+    name: row.name || '',
+    phone: row.phone || '',
+    telegram: row.telegram || '',
+    service: row.service || 'custom',
+    message: row.message || '',
+    createdAt: row.created_at
+      ? new Date(row.created_at).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })
+      : new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' }),
+    status: (row.status as LeadStatus) || 'new',
+    notes: row.notes || '',
+  }
+}
+
+// Fetch leads from Supabase and sync with local storage
+export async function syncLeadsWithServer(): Promise<AdminLead[]> {
+  try {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (!error && Array.isArray(data)) {
+      const mapped = data.map(mapRowToLead)
+      saveLeads(mapped)
+      return mapped
+    }
+  } catch (err) {
+    console.warn('Supabase fetch failed, falling back to local/api:', err)
+  }
+
+  // Fallback to /api/leads
+  try {
+    const res = await fetch('/api/leads')
+    if (res.ok) {
+      const apiData = await res.json()
+      if (Array.isArray(apiData.leads)) {
+        const local = getAllLeads()
+        const map = new Map<string, AdminLead>()
+        for (const l of local) map.set(l.id, l)
+        for (const s of apiData.leads) {
+          if (!map.has(s.id)) map.set(s.id, s)
+        }
+        const merged = Array.from(map.values()).sort(
+          (a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')
+        )
+        saveLeads(merged)
+        return merged
+      }
+    }
+  } catch {
+    // Offline
+  }
+
+  return getAllLeads()
+}
+
+export async function addLead(payload: {
   name: string
   phone: string
   telegram?: string
@@ -43,7 +107,7 @@ export function addLead(payload: {
   message?: string
   status?: LeadStatus
   notes?: string
-}): AdminLead {
+}): Promise<AdminLead> {
   const newLead: AdminLead = {
     id: 'lead_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
     name: payload.name.trim(),
@@ -56,11 +120,30 @@ export function addLead(payload: {
     notes: payload.notes || '',
   }
 
+  // 1. Save to local state immediately
   const leads = getAllLeads()
   leads.unshift(newLead)
   saveLeads(leads)
 
-  // Also sync to server in background
+  // 2. Insert into Supabase
+  try {
+    await supabase.from('leads').insert([
+      {
+        id: newLead.id,
+        name: newLead.name,
+        phone: newLead.phone,
+        telegram: newLead.telegram,
+        service: newLead.service,
+        message: newLead.message,
+        status: newLead.status,
+        notes: newLead.notes,
+      },
+    ])
+  } catch (err) {
+    console.warn('Supabase insert failed:', err)
+  }
+
+  // 3. Sync to API fallback
   syncLeadToServer(newLead)
 
   return newLead
@@ -74,39 +157,11 @@ async function syncLeadToServer(lead: AdminLead) {
       body: JSON.stringify(lead),
     })
   } catch {
-    // Offline or fallback to local
+    // Fallback
   }
 }
 
-// Fetch any leads stored on the server and merge into local
-export async function syncLeadsWithServer(): Promise<AdminLead[]> {
-  try {
-    const res = await fetch('/api/leads')
-    if (res.ok) {
-      const data = await res.json()
-      if (Array.isArray(data.leads)) {
-        const local = getAllLeads()
-        const map = new Map<string, AdminLead>()
-        for (const l of local) map.set(l.id, l)
-        for (const s of data.leads) {
-          if (!map.has(s.id)) {
-            map.set(s.id, s)
-          }
-        }
-        const merged = Array.from(map.values()).sort(
-          (a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')
-        )
-        saveLeads(merged)
-        return merged
-      }
-    }
-  } catch {
-    // Offline
-  }
-  return getAllLeads()
-}
-
-export function updateLeadStatus(id: string, status: LeadStatus, notes?: string): void {
+export async function updateLeadStatus(id: string, status: LeadStatus, notes?: string): Promise<void> {
   const leads = getAllLeads()
   const target = leads.find((l) => l.id === id)
   if (target) {
@@ -116,11 +171,29 @@ export function updateLeadStatus(id: string, status: LeadStatus, notes?: string)
     }
     saveLeads(leads)
   }
+
+  // Update in Supabase
+  try {
+    const updatePayload: any = { status }
+    if (notes !== undefined) {
+      updatePayload.notes = notes
+    }
+    await supabase.from('leads').update(updatePayload).eq('id', id)
+  } catch (err) {
+    console.warn('Supabase update failed:', err)
+  }
 }
 
-export function deleteLead(id: string): void {
+export async function deleteLead(id: string): Promise<void> {
   const leads = getAllLeads().filter((l) => l.id !== id)
   saveLeads(leads)
+
+  // Delete from Supabase
+  try {
+    await supabase.from('leads').delete().eq('id', id)
+  } catch (err) {
+    console.warn('Supabase delete failed:', err)
+  }
 }
 
 export function getLeadsStats() {

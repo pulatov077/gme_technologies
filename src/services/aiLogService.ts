@@ -1,4 +1,5 @@
 import type { AiChatLog } from '@/types'
+import { supabase } from '@/services/supabase'
 
 const STORAGE_KEY_AI_LOGS = 'gme_ai_chat_logs'
 const STORAGE_KEY_SESSION = 'gme_ai_session_id'
@@ -112,8 +113,56 @@ export async function logAiInteraction(params: {
   existing.unshift(newLog)
   saveLogs(existing)
 
+  // Save to Supabase in background
+  try {
+    supabase.from('ai_chat_logs').insert([
+      {
+        id: newLog.id,
+        session_id: newLog.sessionId,
+        user_message: newLog.userMessage,
+        bot_response: newLog.botResponse,
+        category: newLog.category,
+        device: newLog.device,
+        locale: newLog.locale,
+      },
+    ]).then()
+  } catch (err) {
+    console.warn('Supabase insert ai_chat_logs failed:', err)
+  }
+
   // AI chat logs are confidential and only visible in Admin Panel or Bot on password prompt
   return newLog
+}
+
+export async function syncAiLogsWithServer(): Promise<AiChatLog[]> {
+  try {
+    const { data, error } = await supabase
+      .from('ai_chat_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(300)
+
+    if (!error && Array.isArray(data)) {
+      const mapped: AiChatLog[] = data.map((row: any) => ({
+        id: String(row.id),
+        sessionId: row.session_id || '',
+        timestamp: row.created_at
+          ? new Date(row.created_at).toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })
+          : new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' }),
+        date: row.created_at ? new Date(row.created_at).toISOString().split('T')[0] || '' : '',
+        userMessage: row.user_message || '',
+        botResponse: row.bot_response || '',
+        category: row.category || '💡 Umumiy savol',
+        device: (row.device as any) || 'Desktop',
+        locale: row.locale || 'uz',
+      }))
+      saveLogs(mapped)
+      return mapped
+    }
+  } catch (err) {
+    console.warn('Supabase fetch ai_chat_logs failed:', err)
+  }
+  return getAllLogs()
 }
 
 async function sendTelegramNotification(log: AiChatLog): Promise<void> {
