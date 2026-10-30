@@ -14,6 +14,7 @@ const { isOpen, open, close } = useModal()
 
 const scrolled = ref(false)
 const mobileOpen = ref(false)
+const scrollProgressPercent = ref(0)
 
 const navLinks = computed(() => [
   { to: '/', label: t('nav.home') },
@@ -29,7 +30,11 @@ const isActive = (to: string) => {
 }
 
 function onScroll() {
-  scrolled.value = window.scrollY > 60
+  scrolled.value = window.scrollY > 40
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+  if (maxScroll > 0) {
+    scrollProgressPercent.value = Math.min(100, Math.max(0, (window.scrollY / maxScroll) * 100))
+  }
 }
 
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
@@ -45,6 +50,12 @@ watch(() => route.path, () => { mobileOpen.value = false })
     :class="{ 'app-header--scrolled': scrolled }"
     role="banner"
   >
+    <!-- Scroll Reading Progress Line (inspired by david-estrada.dev) -->
+    <div
+      class="header-scroll-line"
+      :style="{ width: `${scrollProgressPercent}%` }"
+      aria-hidden="true"
+    ></div>
     <div class="container app-header__inner">
       <!-- Wordmark logo -->
       <RouterLink to="/" class="app-header__logo" aria-label="GME Technologies — bosh sahifa">
@@ -145,6 +156,18 @@ watch(() => route.path, () => { mobileOpen.value = false })
   padding-block: 0.875rem;
   background: rgba(244, 242, 238, 0.95);
   backdrop-filter: blur(8px);
+}
+
+.header-scroll-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent), #ff8c42);
+  pointer-events: none;
+  z-index: 100;
+  transition: width 0.08s ease-out;
+  box-shadow: 0 0 8px rgba(255, 90, 31, 0.4);
 }
 
 .app-header__inner {

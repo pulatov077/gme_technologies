@@ -14,6 +14,7 @@ import StatCounter from '@/components/StatCounter.vue'
 import ProjectShowcase from '@/components/ProjectShowcase.vue'
 import LogoMarquee from '@/components/LogoMarquee.vue'
 import LeadForm from '@/components/LeadForm.vue'
+import ScrollRevealText from '@/components/ScrollRevealText.vue'
 import { useReveal } from '@/composables/useReveal'
 
 const { t, tm, locale } = useI18n()
@@ -32,16 +33,42 @@ watch(locale, () => {
   heroWordIndex.value = 0
 })
 
+// Active Project Scroll Tracker (inspired by david-estrada.dev)
+const activeProjectIndex = ref(0)
+let projectScrollObserver: IntersectionObserver | null = null
+
 onMounted(() => {
   heroTimer = setInterval(() => {
     if (heroWords.value.length > 0) {
       heroWordIndex.value = (heroWordIndex.value + 1) % heroWords.value.length
     }
   }, 2200)
+
+  // Track which project showcase is currently in viewport
+  setTimeout(() => {
+    const showcases = document.querySelectorAll('.project-showcase')
+    if (showcases.length) {
+      projectScrollObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const index = Array.from(showcases).indexOf(entry.target)
+              if (index !== -1) {
+                activeProjectIndex.value = index
+              }
+            }
+          })
+        },
+        { threshold: 0.25, rootMargin: '-10% 0px -30% 0px' },
+      )
+      showcases.forEach((el) => projectScrollObserver?.observe(el))
+    }
+  }, 300)
 })
 
 onUnmounted(() => {
   if (heroTimer) clearInterval(heroTimer)
+  projectScrollObserver?.disconnect()
 })
 
 const localizedProjects = computed(() =>
@@ -356,9 +383,28 @@ const { el: statsRef } = useReveal(0.1)
             :title="t('projects.title')"
             :subtitle="t('projects.subtitle')"
           />
-          <RouterLink to="/projects" class="btn btn--outline view-all-btn">
-            {{ t('cta.viewAll') }}
-          </RouterLink>
+          <div class="projects-header-actions">
+            <!-- Active Project Scroll Tracker (inspired by david-estrada.dev) -->
+            <div class="projects-scroll-tracker" aria-hidden="true">
+              <span class="tracker-dot"></span>
+              <span class="tracker-label">{{ featuredProjects[activeProjectIndex]?.client || 'Loyiha' }}</span>
+              <span class="tracker-nums">
+                <span class="tracker-cur">0{{ activeProjectIndex + 1 }}</span>
+                <span class="tracker-sep">/</span>
+                <span class="tracker-tot">0{{ featuredProjects.length }}</span>
+              </span>
+              <div class="tracker-progress-track">
+                <div
+                  class="tracker-progress-bar"
+                  :style="{ width: `${((activeProjectIndex + 1) / (featuredProjects.length || 1)) * 100}%` }"
+                ></div>
+              </div>
+            </div>
+
+            <RouterLink to="/projects" class="btn btn--outline view-all-btn">
+              {{ t('cta.viewAll') }}
+            </RouterLink>
+          </div>
         </div>
 
         <div class="project-showcases-list">
@@ -528,7 +574,10 @@ const { el: statsRef } = useReveal(0.1)
 
         <div v-if="activeTestimonial" class="testimonial-box">
           <blockquote class="testimonial-quote">
-            {{ activeTestimonial.quote }}
+            <ScrollRevealText
+              :key="activeTestimonial.id"
+              :text="activeTestimonial.quote"
+            />
           </blockquote>
 
           <div class="testimonial-footer">
@@ -918,6 +967,80 @@ const { el: statsRef } = useReveal(0.1)
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border-light);
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.projects-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Active Project Scroll Tracker (inspired by david-estrada.dev) */
+.projects-scroll-tracker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(11, 15, 20, 0.04);
+  border: 1px solid var(--color-border-light);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+}
+
+.tracker-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 90, 31, 0.7);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+.tracker-label {
+  font-weight: 600;
+  color: var(--color-ink);
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tracker-nums {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.tracker-cur {
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.tracker-progress-track {
+  width: 38px;
+  height: 3px;
+  background: rgba(11, 15, 20, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tracker-progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .view-all-btn {
