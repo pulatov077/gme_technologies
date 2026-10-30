@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { projects, getLocalizedProject } from '@/data/projects'
@@ -51,6 +51,53 @@ const localizedProjects = computed(() =>
 const featuredProjects = computed(() =>
   localizedProjects.value.filter((p) => p.featured).slice(0, 4),
 )
+
+// 3D Tilt for Hero Strip Cards (inspired by Marco Madonna)
+const stripTiltStyles = reactive<Record<string, any>>({})
+const stripSheenStyles = reactive<Record<string, any>>({})
+
+function handleStripEnter(e: MouseEvent, slug: string) {
+  if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) return
+  handleStripMove(e, slug)
+}
+
+function handleStripMove(e: MouseEvent, slug: string) {
+  const target = (e.currentTarget as HTMLElement)?.querySelector('.hero-strip__media') as HTMLElement
+  if (!target) return
+  const rect = target.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+  const normX = (x - rect.width / 2) / (rect.width / 2 || 1)
+  const normY = (y - rect.height / 2) / (rect.height / 2 || 1)
+
+  const rotX = (-normY * 5).toFixed(2)
+  const rotY = (normX * 5).toFixed(2)
+  const glareX = ((x / (rect.width || 1)) * 100).toFixed(1)
+  const glareY = ((y / (rect.height || 1)) * 100).toFixed(1)
+
+  stripTiltStyles[slug] = {
+    transform: `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02, 1.02, 1.02)`,
+    transition: 'transform 80ms ease-out',
+    transformStyle: 'preserve-3d',
+  }
+  stripSheenStyles[slug] = {
+    opacity: 1,
+    background: `radial-gradient(circle 240px at ${glareX}% ${glareY}%, rgba(255, 90, 31, 0.18) 0%, rgba(255, 255, 255, 0.08) 35%, transparent 70%)`,
+    transition: 'opacity 0.2s ease-out',
+  }
+}
+
+function handleStripLeave(slug: string) {
+  stripTiltStyles[slug] = {
+    transform: 'perspective(800px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+    transition: 'transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+    transformStyle: 'preserve-3d',
+  }
+  stripSheenStyles[slug] = {
+    opacity: 0,
+    transition: 'opacity 300ms ease-out',
+  }
+}
 
 // Active service item for expandable list-style services
 const activeService = ref<number | null>(0)
@@ -246,8 +293,14 @@ const { el: statsRef } = useReveal(0.1)
               :key="proj.slug"
               :to="`/projects/${proj.slug}`"
               class="hero-strip__card"
+              @mouseenter="(e) => handleStripEnter(e, proj.slug)"
+              @mousemove="(e) => handleStripMove(e, proj.slug)"
+              @mouseleave="() => handleStripLeave(proj.slug)"
             >
-              <div class="hero-strip__media">
+              <div
+                class="hero-strip__media"
+                :style="stripTiltStyles[proj.slug] || {}"
+              >
                 <img
                   v-if="proj.coverImage"
                   :src="proj.coverImage"
@@ -261,6 +314,9 @@ const { el: statsRef } = useReveal(0.1)
                     <h3 class="h3 text-white">{{ proj.title }}</h3>
                   </div>
                 </div>
+
+                <!-- Specular Ambient Sheen (Marco Madonna style) -->
+                <div class="hero-strip__sheen" :style="stripSheenStyles[proj.slug] || {}" aria-hidden="true"></div>
               </div>
               <div class="hero-strip__info">
                 <span class="hero-strip__industry">{{ proj.industry }}</span>
@@ -770,6 +826,7 @@ const { el: statsRef } = useReveal(0.1)
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+  perspective: 800px;
 }
 
 .hero-strip__media {
@@ -779,6 +836,22 @@ const { el: statsRef } = useReveal(0.1)
   background-color: #0b0f14;
   border: 1px solid var(--color-border-light);
   position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  box-shadow: 0 4px 16px rgba(11, 15, 20, 0.06);
+}
+
+.hero-strip__card:hover .hero-strip__media {
+  box-shadow: 0 16px 32px rgba(11, 15, 20, 0.14);
+}
+
+.hero-strip__sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  opacity: 0;
 }
 
 .hero-strip__img {

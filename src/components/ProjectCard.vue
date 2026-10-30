@@ -2,18 +2,45 @@
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import type { Project } from '@/types'
+import { useCardTilt } from '@/composables/useCardTilt'
 
 defineProps<{
   project: Project
 }>()
 
 const { t } = useI18n()
+
+const {
+  cardRef: mediaContainerRef,
+  isHovered: isMediaHovered,
+  cardStyle: mediaTiltStyle,
+  sheenStyle: mediaSheenStyle,
+  cursorTagStyle,
+  onMouseEnter: onMediaEnter,
+  onMouseMove: onMediaMove,
+  onMouseLeave: onMediaLeave,
+} = useCardTilt({
+  maxTilt: 6,
+  scale: 1.02,
+  perspective: 900,
+  glare: true,
+})
 </script>
 
 <template>
   <article class="project-card">
-    <RouterLink :to="`/projects/${project.slug}`" class="project-card__media-link">
-      <div class="project-card__image-container">
+    <RouterLink
+      :to="`/projects/${project.slug}`"
+      class="project-card__media-link"
+      @mouseenter="onMediaEnter"
+      @mousemove="onMediaMove"
+      @mouseleave="onMediaLeave"
+    >
+      <div
+        ref="mediaContainerRef"
+        class="project-card__image-container"
+        :style="mediaTiltStyle"
+      >
         <img
           v-if="project.coverImage"
           :src="project.coverImage"
@@ -27,6 +54,22 @@ const { t } = useI18n()
             <span class="label project-placeholder__client">{{ project.client }}</span>
             <h3 class="h3 project-placeholder__title">{{ project.title }}</h3>
           </div>
+        </div>
+
+        <!-- Specular light sheen (Marco Madonna style) -->
+        <div class="project-card__sheen" :style="mediaSheenStyle" aria-hidden="true"></div>
+
+        <!-- Magnetic Cursor Tag (David Estrada style) -->
+        <div
+          v-if="isMediaHovered"
+          class="project-cursor-tag"
+          :style="cursorTagStyle"
+          aria-hidden="true"
+        >
+          <span>{{ t('cta.viewProject') }}</span>
+          <svg class="cursor-tag__arrow" width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4.5 11.5l7-7M5.5 4.5h6v6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
       </div>
     </RouterLink>
@@ -74,15 +117,66 @@ const { t } = useI18n()
 
 .project-card__media-link {
   display: block;
-  overflow: hidden;
   text-decoration: none;
+  perspective: 900px;
 }
 
 .project-card__image-container {
+  position: relative;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: 2px;
+  border-radius: 4px;
   background-color: var(--color-ink);
+  transform-style: preserve-3d;
+  will-change: transform;
+  box-shadow: 0 8px 24px rgba(11, 15, 20, 0.08);
+}
+
+.project-card:hover .project-card__image-container {
+  box-shadow: 0 16px 36px rgba(11, 15, 20, 0.15);
+}
+
+.project-card__sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+/* Floating Magnetic Tag (inspired by David Estrada) */
+.project-cursor-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem;
+  background: rgba(11, 15, 20, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 90, 31, 0.55);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), 0 0 16px rgba(255, 90, 31, 0.22);
+  white-space: nowrap;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cursor-tag__arrow {
+  color: var(--color-accent);
+  transition: transform 0.2s ease;
+}
+
+.project-card:hover .cursor-tag__arrow {
+  transform: translate(1px, -1px);
 }
 
 .project-card__img {
